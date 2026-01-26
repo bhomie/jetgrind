@@ -1,0 +1,61 @@
+appId: com.jetgrind.app
+productName: JetGrind
+copyright: Copyright © 2025
+
+directories:
+  output: release
+  buildResources: assets
+
+files:
+  - dist/**/*
+  - "!node_modules/**/*"
+
+extraResources:
+  - from: prisma
+    to: prisma
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: assets/icons/icon.ico
+  artifactName: ${name}-${version}-win-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: assets/icons/icon.icns
+  category: public.app-category.productivity
+  artifactName: ${name}-${version}-mac-${arch}.${ext}
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: assets/icons
+  category: Office
+  artifactName: ${name}-${version}-linux-${arch}.${ext}
+
+publish:
+  provider: github
+  releaseType: draft

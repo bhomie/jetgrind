@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Kawaii Color Palette */
+  --kawaii-pink: #FFB6C1;
+  --kawaii-lavender: #E6E6FA;
+  --kawaii-mint: #98FB98;
+  --kawaii-peach: #FFDAB9;
+  --kawaii-sky: #87CEEB;
+  --kawaii-cream: #FFFDD0;
+
+  /* Mood Colors */
+  --mood-ecstatic: #FFD700;
+  --mood-happy: #98FB98;
+  --mood-content: #87CEEB;
+  --mood-neutral: #E6E6FA;
+  --mood-sad: #B0C4DE;
+  --mood-worried: #DDA0DD;
+
+  /* UI Variables */
+  --bg-primary: #FEF1F7;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --text-primary: #2D3748;
+  --text-secondary: #718096;
+  --border-color: #FFC0CB;
+  --shadow-color: rgba(255, 105, 168, 0.2);
+
+  /* Spacing */
+  --title-bar-height: 32px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--kawaii-lavender);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--kawaii-pink);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff9eb5;
+}
+
+/* Title bar drag region */
+.title-bar {
+  -webkit-app-region: drag;
+  height: var(--title-bar-height);
+}
+
+.title-bar button {
+  -webkit-app-region: no-drag;
+}
+
+/* Card styles */
+@layer components {
+  .kawaii-card {
+    @apply bg-white rounded-kawaii shadow-kawaii p-4 border-2 border-pink-200;
+  }
+
+  .kawaii-button {
+    @apply px-4 py-2 rounded-full bg-gradient-to-r from-primary-400 to-primary-500 text-white font-medium shadow-kawaii hover:shadow-kawaii-lg transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .kawaii-button-secondary {
+    @apply px-4 py-2 rounded-full bg-white border-2 border-primary-300 text-primary-600 font-medium hover:bg-primary-50 transition-all duration-200;
+  }
+
+  .kawaii-input {
+    @apply w-full px-4 py-2 rounded-kawaii border-2 border-pink-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all duration-200;
+  }
+
+  .xp-bar {
+    @apply h-4 bg-gradient-to-r from-accent-400 to-accent-500 rounded-full transition-all duration-500 ease-out;
+  }
+
+  .coin-badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 bg-accent-100 text-accent-700 rounded-full font-medium;
+  }
+
+  .mood-indicator {
+    @apply w-3 h-3 rounded-full animate-pulse;
+  }
+
+  .mood-ecstatic { @apply bg-mood-ecstatic; }
+  .mood-happy { @apply bg-mood-happy; }
+  .mood-content { @apply bg-mood-content; }
+  .mood-neutral { @apply bg-mood-neutral; }
+  .mood-sad { @apply bg-mood-sad; }
+  .mood-worried { @apply bg-mood-worried; }
+}
+
+/* Animation classes */
+@layer utilities {
+  .animate-bounce-in {
+    animation: bounceIn 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-pop {
+    animation: pop 0.2s ease-out;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .animate-scale-up {
+    animation: scaleUp 0.2s ease-out;
+  }
+
+  .animate-confetti {
+    animation: confetti 1s ease-out forwards;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) rotate(720deg);
+  }
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid var(--kawaii-pink);
+  outline-offset: 2px;
+}

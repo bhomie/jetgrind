@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./jetgrind.db"
+}
+
+model User {
+  id             String   @id @default(uuid())
+  xp             Int      @default(0)
+  level          Int      @default(1)
+  coins          Int      @default(100)
+  streak         Int      @default(0)
+  lastActiveDate String?
+  settings       String   @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  inventoryItems    InventoryItem[]
+  equippedCosmetics EquippedCosmetic[]
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  status      String    @default("pending")
+  priority    String    @default("medium")
+  size        String    @default("medium")
+  parentId    String?
+  dueDate     DateTime?
+  completedAt DateTime?
+  xpReward    Int       @default(25)
+  coinReward  Int       @default(15)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parent   Task?  @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks Task[] @relation("TaskSubtasks")
+
+  pomodoroSessions PomodoroSession[]
+
+  @@index([status])
+  @@index([parentId])
+}
+
+model PomodoroSession {
+  id          String    @id @default(uuid())
+  taskId      String?
+  phase       String    @default("work")
+  duration    Int
+  startedAt   DateTime
+  completedAt DateTime?
+  interrupted Boolean   @default(false)
+  xpEarned    Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  task Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([startedAt])
+  @@index([taskId])
+}
+
+model ShopItem {
+  id            String   @id @default(uuid())
+  name          String
+  description   String
+  type          String
+  rarity        String   @default("common")
+  price         Int      @default(0)
+  isPremium     Boolean  @default(false)
+  requiredLevel Int      @default(1)
+  imageUrl      String
+  createdAt     DateTime @default(now())
+
+  inventoryItems    InventoryItem[]
+  equippedCosmetics EquippedCosmetic[]
+
+  @@index([type])
+  @@index([isPremium])
+}
+
+model InventoryItem {
+  id         String   @id @default(uuid())
+  userId     String
+  shopItemId String
+  acquiredAt DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItem ShopItem @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shopItemId])
+  @@index([userId])
+}
+
+model EquippedCosmetic {
+  id         String   @id @default(uuid())
+  userId     String
+  shopItemId String
+  slot       String
+  equippedAt DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItem ShopItem @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, slot])
+  @@index([userId])
+}
