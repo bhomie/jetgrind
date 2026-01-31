@@ -2,14 +2,9 @@ import SwiftUI
 
 @main
 struct JetGrindApp: App {
-    @State private var store = TodoStore()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        MenuBarExtra {
-            TodoListView(store: store)
-        } label: {
-            Image(systemName: "checkmark.circle")
-        }
-        .menuBarExtraStyle(.window)
+        Settings { EmptyView() }
     }
 }

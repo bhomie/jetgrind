@@ -7,9 +7,13 @@ let package = Package(
     platforms: [
         .macOS(.v15)
     ],
+    dependencies: [
+        .package(url: "https://github.com/soffes/HotKey", from: "0.2.0")
+    ],
     targets: [
         .executableTarget(
-            name: "JetGrind"
+            name: "JetGrind",
+            dependencies: ["HotKey"]
         )
     ]
 )

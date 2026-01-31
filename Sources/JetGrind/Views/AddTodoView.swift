@@ -2,6 +2,8 @@ import SwiftUI
 
 struct AddTodoView: View {
     @State private var title: String = ""
+    var focus: FocusState<TodoFocus?>.Binding
+    let firstTaskId: UUID?
     let onAdd: (String) -> Void
 
     var body: some View {
@@ -12,9 +14,17 @@ struct AddTodoView: View {
 
             TextField("Add a task...", text: $title)
                 .textFieldStyle(.plain)
+                .focused(focus, equals: .input)
                 .onSubmit {
                     onAdd(title)
                     title = ""
+                }
+                .onKeyPress(.downArrow) {
+                    if let firstId = firstTaskId {
+                        focus.wrappedValue = .task(firstId)
+                        return .handled
+                    }
+                    return .ignored
                 }
         }
         .padding(.vertical, 10)

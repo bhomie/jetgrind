@@ -2,6 +2,9 @@ import SwiftUI
 
 struct TodoRowView: View {
     let item: TodoItem
+    var focus: FocusState<TodoFocus?>.Binding
+    let previousTaskId: UUID?
+    let nextTaskId: UUID?
     let onToggle: () -> Void
     let onDelete: () -> Void
 
@@ -39,5 +42,34 @@ struct TodoRowView: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 12)
+        .background(focus.wrappedValue == .task(item.id) ? Color.accentColor.opacity(0.1) : Color.clear)
+        .focusable()
+        .focused(focus, equals: .task(item.id))
+        .onKeyPress(.upArrow) {
+            if let prevId = previousTaskId {
+                focus.wrappedValue = .task(prevId)
+            } else {
+                focus.wrappedValue = .input
+            }
+            return .handled
+        }
+        .onKeyPress(.downArrow) {
+            if let nextId = nextTaskId {
+                focus.wrappedValue = .task(nextId)
+            }
+            return .handled
+        }
+        .onKeyPress(.space) {
+            onToggle()
+            return .handled
+        }
+        .onKeyPress(.return) {
+            onToggle()
+            return .handled
+        }
+        .onKeyPress(.delete) {
+            onDelete()
+            return .handled
+        }
     }
 }
