@@ -9,7 +9,7 @@ struct AddTodoView: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "plus.circle.fill")
-                .foregroundStyle(.blue)
+                .foregroundStyle(.tint)
                 .font(.system(size: 18))
 
             TextField("Add a task...", text: $title)
