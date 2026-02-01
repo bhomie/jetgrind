@@ -9,13 +9,13 @@ struct TodoRowView: View {
     let onDelete: () -> Void
 
     @State private var isHovered = false
-    @State private var showCelebration = false
-    @State private var checkboxScale: CGFloat = 1.0
     @State private var showTimestamp = false
     @State private var isExpanded = false
+    @State private var showRipple = false
+    @State private var showConfetti = false
 
     private var isActive: Bool {
-        isHovered || focus.wrappedValue == .task(item.id)
+        !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id))
     }
 
     private var isKeyboardFocused: Bool {
@@ -27,16 +27,16 @@ struct TodoRowView: View {
             checkboxView
             titleView
             Spacer()
-            HStack(spacing: isActive ? 12 : 0) {
-                timestampView
-                deleteButton
-            }
+            timestampView
+            deleteButton
         }
-        .opacity(item.isCompleted ? 0.5 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: item.isCompleted)
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(backgroundColor)
+        .opacity(item.isCompleted ? 0.5 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: item.isCompleted)
+        .rippleEffect(isActive: showRipple)
+        .confettiOverlay(isActive: showConfetti)
         .animation(.easeInOut(duration: 0.2), value: isKeyboardFocused || isExpanded)
         .onHover { hovering in
             isHovered = hovering
@@ -86,39 +86,19 @@ struct TodoRowView: View {
     }
 
     private var checkboxView: some View {
-        ZStack {
-            Button(action: handleToggle) {
-                Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
-                    .font(.system(size: 18))
-                    .contentTransition(.symbolEffect(.replace))
+        Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+            .font(.system(size: 16))
+            .foregroundStyle(item.isCompleted ? Color.accentColor : .secondary)
+            .scaleEffect(item.isCompleted ? 1 : 0.9)
+            .animation(.spring(response: 0.4, dampingFraction: 0.6), value: item.isCompleted)
+            .onTapGesture {
+                handleToggle()
             }
-            .buttonStyle(.plain)
-
-            sparkleOverlay
-        }
-    }
-
-    private var sparkleOverlay: some View {
-        let colors: [Color] = [.green, .yellow, .blue, .orange, .pink]
-        return ForEach(0..<5, id: \.self) { i in
-            let angle = (Double(i) / 5.0) * 2 * .pi - .pi / 2
-            Image(systemName: "sparkle")
-                .font(.system(size: 10))
-                .foregroundStyle(colors[i])
-                .scaleEffect(showCelebration ? 1.2 : 0)
-                .opacity(showCelebration ? 0 : 1)
-                .offset(
-                    x: showCelebration ? cos(angle) * 20 : 0,
-                    y: showCelebration ? sin(angle) * 20 : 0
-                )
-                .animation(.easeOut(duration: 0.4).delay(Double(i) * 0.03), value: showCelebration)
-        }
     }
 
     private var titleView: some View {
         Text(item.title)
-            .fontWeight(.medium)
+            .font(.system(size: 12, weight: .medium))
             .strikethrough(item.isCompleted)
             .foregroundStyle(item.isCompleted ? .secondary : .primary)
             .lineLimit(item.isCompleted ? 1 : ((isKeyboardFocused || isExpanded) ? nil : 2))
@@ -129,12 +109,14 @@ struct TodoRowView: View {
 
     private var timestampView: some View {
         Text(item.createdAt.relativeFormat)
-            .font(.caption2)
-            .foregroundStyle(.primary)
+            .font(.system(size: 7))
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
-            .background(Color.primary.opacity(item.isCompleted ? 0.05 : 0.08))
-            .clipShape(Capsule())
+            .background {
+                Capsule()
+                    .fill(Color.primary.opacity(0.08))
+            }
             .opacity(showTimestamp ? 1 : 0)
             .blur(radius: showTimestamp ? 0 : 8)
             .animation(.easeOut(duration: 0.25), value: showTimestamp)
@@ -153,9 +135,10 @@ struct TodoRowView: View {
         }
         .buttonStyle(.plain)
         .opacity(isActive ? 0.8 : 0)
+        .scaleEffect(isActive ? 1 : 0.2)
         .frame(width: isActive ? nil : 0)
         .clipped()
-        .animation(.easeInOut(duration: 0.15), value: isActive)
+        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isActive)
     }
 
     private var backgroundColor: Color {
@@ -163,16 +146,19 @@ struct TodoRowView: View {
     }
 
     private func handleToggle() {
+        // Only celebrate when completing, not uncompleting
         if !item.isCompleted {
-            triggerCelebration()
-        }
-        onToggle()
-    }
-
-    private func triggerCelebration() {
-        showCelebration = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            showCelebration = false
+            Task { @MainActor in
+                showRipple = true
+                try? await Task.sleep(for: .milliseconds(100))
+                showConfetti = true
+                try? await Task.sleep(for: .milliseconds(400))
+                showRipple = false
+                showConfetti = false
+                onToggle()
+            }
+        } else {
+            onToggle()
         }
     }
 }

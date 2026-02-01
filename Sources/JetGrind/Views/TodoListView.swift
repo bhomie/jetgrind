@@ -11,13 +11,25 @@ struct TodoListView: View {
     @State private var showEmptyState = false
     @State private var injectedText: String = ""
 
+    private var incompleteItems: [TodoItem] {
+        store.items.filter { !$0.isCompleted }
+    }
+
+    private var completedItems: [TodoItem] {
+        store.items.filter { $0.isCompleted }
+    }
+
+    private var allSortedItems: [TodoItem] {
+        incompleteItems + completedItems
+    }
+
     var body: some View {
         GlassEffectContainer {
             VStack(spacing: 0) {
                 AddTodoView(
                     focus: $focus,
                     injectedText: $injectedText,
-                    firstTaskId: store.items.first?.id,
+                    firstTaskId: allSortedItems.first?.id,
                     onAdd: { title in
                         withAnimation(.easeOut(duration: 0.25)) {
                             store.add(title: title)
@@ -30,24 +42,21 @@ struct TodoListView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 0) {
-                            ForEach(Array(store.items.enumerated()), id: \.element.id) { index, item in
-                                TodoRowView(
-                                    item: item,
-                                    focus: $focus,
-                                    previousTaskId: index > 0 ? store.items[index - 1].id : nil,
-                                    nextTaskId: index < store.items.count - 1 ? store.items[index + 1].id : nil,
-                                    onToggle: {
-                                        withAnimation(.easeInOut(duration: 0.2)) {
-                                            store.toggle(id: item.id)
-                                        }
-                                    },
-                                    onDelete: {
-                                        withAnimation(.easeOut(duration: 0.2)) {
-                                            store.delete(id: item.id)
-                                        }
-                                    }
-                                )
-                                .transition(.blurReplace)
+                            ForEach(Array(incompleteItems.enumerated()), id: \.element.id) { index, item in
+                                let prevId = index > 0 ? incompleteItems[index - 1].id : nil
+                                let nextId = index < incompleteItems.count - 1 ? incompleteItems[index + 1].id : completedItems.first?.id
+                                todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId)
+                            }
+
+                            if !incompleteItems.isEmpty && !completedItems.isEmpty {
+                                Spacer()
+                                    .frame(height: 16)
+                            }
+
+                            ForEach(Array(completedItems.enumerated()), id: \.element.id) { index, item in
+                                let prevId = index > 0 ? completedItems[index - 1].id : incompleteItems.last?.id
+                                let nextId = index < completedItems.count - 1 ? completedItems[index + 1].id : nil
+                                todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId)
                             }
                         }
                     }
@@ -85,6 +94,27 @@ struct TodoListView: View {
         .onAppear {
             showEmptyState = store.items.isEmpty
         }
+    }
+
+    @ViewBuilder
+    private func todoRow(item: TodoItem, previousTaskId: UUID?, nextTaskId: UUID?) -> some View {
+        TodoRowView(
+            item: item,
+            focus: $focus,
+            previousTaskId: previousTaskId,
+            nextTaskId: nextTaskId,
+            onToggle: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    store.toggle(id: item.id)
+                }
+            },
+            onDelete: {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    store.delete(id: item.id)
+                }
+            }
+        )
+        .transition(.blurReplace)
     }
 
     private var emptyStateView: some View {

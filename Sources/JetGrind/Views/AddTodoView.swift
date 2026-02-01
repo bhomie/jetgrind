@@ -2,24 +2,23 @@ import SwiftUI
 
 struct AddTodoView: View {
     @State private var title: String = ""
-    @State private var iconRotation: Double = 0
-    @State private var iconColor: Color = .secondary
     var focus: FocusState<TodoFocus?>.Binding
     @Binding var injectedText: String
     let firstTaskId: UUID?
     let onAdd: (String) -> Void
 
-    private var isFocused: Bool {
-        focus.wrappedValue == .input
+    private var hasValidText: Bool {
+        !title.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     var body: some View {
         HStack(spacing: 12) {
             TextField("Add a task...", text: $title)
                 .textFieldStyle(.plain)
+                .font(.system(size: 12))
                 .focused(focus, equals: .input)
                 .onSubmit {
-                    guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                    guard hasValidText else { return }
                     onAdd(title)
                     title = ""
                 }
@@ -38,15 +37,12 @@ struct AddTodoView: View {
                 }
 
             Image(systemName: "plus.circle.fill")
-                .foregroundStyle(iconColor)
+                .foregroundStyle(Color.accentColor)
                 .font(.system(size: 18))
-                .rotationEffect(.degrees(iconRotation))
-                .onChange(of: isFocused) { _, focused in
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        iconRotation = focused ? 90 : 0
-                        iconColor = focused ? Color.accentColor : .secondary
-                    }
-                }
+                .frame(width: 18, height: 18)
+                .opacity(hasValidText ? 1 : 0)
+                .scaleEffect(hasValidText ? 1 : 0.2)
+                .animation(.spring(response: 0.4, dampingFraction: 0.6), value: hasValidText)
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 12)
