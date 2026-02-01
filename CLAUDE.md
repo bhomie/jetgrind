@@ -19,6 +19,10 @@ Menu bar todo app using SwiftUI (macOS 15+, Swift 6.0).
 
 Data flows through a single `TodoStore` instance passed from app to views via `@Bindable`.
 
+## Known Fixes
+
+**Keyboard delete on MacBook**: `.onKeyPress(keys: [.delete, .deleteForward])` doesn't work for MacBook keyboards—their "Delete" key sends backspace (`\u{7F}`), not forward-delete. Add a catch-all `.onKeyPress` handler checking `keyPress.key.character == "\u{7F}"`.
+
 ## Communication
 
 Keep summaries very succinct.
