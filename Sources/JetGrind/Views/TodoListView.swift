@@ -42,20 +42,18 @@ struct TodoListView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 0) {
-                            ForEach(Array(incompleteItems.enumerated()), id: \.element.id) { index, item in
-                                let prevId = index > 0 ? incompleteItems[index - 1].id : nil
-                                let nextId = index < incompleteItems.count - 1 ? incompleteItems[index + 1].id : completedItems.first?.id
-                                todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId)
-                            }
-
-                            if !incompleteItems.isEmpty && !completedItems.isEmpty {
-                                Spacer()
-                                    .frame(height: 16)
-                            }
-
-                            ForEach(Array(completedItems.enumerated()), id: \.element.id) { index, item in
-                                let prevId = index > 0 ? completedItems[index - 1].id : incompleteItems.last?.id
-                                let nextId = index < completedItems.count - 1 ? completedItems[index + 1].id : nil
+                            ForEach(Array(allSortedItems.enumerated()), id: \.element.id) { index, item in
+                                let prevId = index > 0 ? allSortedItems[index - 1].id : nil
+                                let nextId = index < allSortedItems.count - 1 ? allSortedItems[index + 1].id : nil
+                                
+                                // Add spacer before first completed item
+                                if item.isCompleted && (index == 0 || !allSortedItems[index - 1].isCompleted) {
+                                    if !incompleteItems.isEmpty {
+                                        Spacer()
+                                            .frame(height: 16)
+                                    }
+                                }
+                                
                                 todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId)
                             }
                         }
@@ -98,16 +96,19 @@ struct TodoListView: View {
 
     @ViewBuilder
     private func todoRow(item: TodoItem, previousTaskId: UUID?, nextTaskId: UUID?) -> some View {
+        let itemBinding = Binding(
+            get: { store.items.first { $0.id == item.id } ?? item },
+            set: { newValue in
+                if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
+                    store.items[idx] = newValue
+                }
+            }
+        )
         TodoRowView(
-            item: item,
+            item: itemBinding,
             focus: $focus,
             previousTaskId: previousTaskId,
             nextTaskId: nextTaskId,
-            onToggle: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    store.toggle(id: item.id)
-                }
-            },
             onDelete: {
                 withAnimation(.easeOut(duration: 0.2)) {
                     store.delete(id: item.id)

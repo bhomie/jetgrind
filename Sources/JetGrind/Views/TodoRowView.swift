@@ -1,11 +1,10 @@
 import SwiftUI
 
 struct TodoRowView: View {
-    let item: TodoItem
+    @Binding var item: TodoItem
     var focus: FocusState<TodoFocus?>.Binding
     let previousTaskId: UUID?
     let nextTaskId: UUID?
-    let onToggle: () -> Void
     let onDelete: () -> Void
 
     @State private var isHovered = false
@@ -22,10 +21,15 @@ struct TodoRowView: View {
         focus.wrappedValue == .task(item.id)
     }
 
+    private var isHighlighted: Bool {
+        isHovered || focus.wrappedValue == .task(item.id)
+    }
+
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 0) {
             checkboxView
             titleView
+                .padding(.leading, 12)
             Spacer()
             timestampView
             deleteButton
@@ -33,6 +37,7 @@ struct TodoRowView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(backgroundColor)
+        .animation(.easeInOut(duration: 0.2), value: isHighlighted)
         .opacity(item.isCompleted ? 0.5 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: item.isCompleted)
         .rippleEffect(isActive: showRipple)
@@ -128,21 +133,26 @@ struct TodoRowView: View {
     }
 
     private var deleteButton: some View {
-        Button(action: onDelete) {
-            Image(systemName: "delete.backward")
-                .font(.system(size: 14))
-                .foregroundStyle(.secondary)
+        HStack(spacing: 0) {
+            Spacer()
+                .frame(width: isActive ? 12 : 0)
+            Button(action: onDelete) {
+                Image(systemName: "delete.backward")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .opacity(isActive ? 0.8 : 0)
+            .scaleEffect(isActive ? 1 : 0.2)
+            .frame(width: isActive ? nil : 0)
+            .clipped()
         }
-        .buttonStyle(.plain)
-        .opacity(isActive ? 0.8 : 0)
-        .scaleEffect(isActive ? 1 : 0.2)
-        .frame(width: isActive ? nil : 0)
-        .clipped()
         .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isActive)
+        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: item.isCompleted)
     }
 
     private var backgroundColor: Color {
-        isActive ? Color.primary.opacity(0.05) : Color.clear
+        isHighlighted ? Color.primary.opacity(0.05) : Color.clear
     }
 
     private func handleToggle() {
@@ -155,10 +165,14 @@ struct TodoRowView: View {
                 try? await Task.sleep(for: .milliseconds(400))
                 showRipple = false
                 showConfetti = false
-                onToggle()
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    item.isCompleted.toggle()
+                }
             }
         } else {
-            onToggle()
+            withAnimation(.easeInOut(duration: 0.2)) {
+                item.isCompleted.toggle()
+            }
         }
     }
 }
