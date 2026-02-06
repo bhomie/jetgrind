@@ -5,13 +5,17 @@ struct TodoRowView: View {
     var focus: FocusState<TodoFocus?>.Binding
     let previousTaskId: UUID?
     let nextTaskId: UUID?
+    let hasCompletedItems: Bool
     let onDelete: () -> Void
+    var onStartTravel: ((CGRect) -> Void)?
 
     @State private var isHovered = false
     @State private var showTimestamp = false
     @State private var isExpanded = false
-    @State private var showRipple = false
     @State private var showConfetti = false
+    @State private var isCompleting = false
+    @State private var rowFrame: CGRect = .zero
+    @State private var checkboxFrame: CGRect = .zero
 
     private var isActive: Bool {
         !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id))
@@ -37,10 +41,21 @@ struct TodoRowView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(backgroundColor)
+        .background(GeometryReader { geometry in
+            Color.clear.preference(
+                key: RowFrameKey.self,
+                value: geometry.frame(in: .global)
+            )
+        })
+        .onPreferenceChange(RowFrameKey.self) { frame in
+            rowFrame = frame
+        }
+        .onPreferenceChange(CheckboxFrameKey.self) { frame in
+            checkboxFrame = frame
+        }
         .animation(.easeInOut(duration: 0.2), value: isHighlighted)
         .opacity(item.isCompleted ? 0.5 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: item.isCompleted)
-        .rippleEffect(isActive: showRipple)
         .confettiOverlay(isActive: showConfetti)
         .animation(.easeInOut(duration: 0.2), value: isKeyboardFocused || isExpanded)
         .onHover { hovering in
@@ -65,6 +80,8 @@ struct TodoRowView: View {
         .onKeyPress(.downArrow) {
             if let nextId = nextTaskId {
                 focus.wrappedValue = .task(nextId)
+            } else if hasCompletedItems {
+                focus.wrappedValue = .completedPill
             }
             return .handled
         }
@@ -91,11 +108,18 @@ struct TodoRowView: View {
     }
 
     private var checkboxView: some View {
-        Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+        Image(systemName: (item.isCompleted || isCompleting) ? "checkmark.circle.fill" : "circle")
             .font(.system(size: 16))
-            .foregroundStyle(item.isCompleted ? Color.accentColor : .secondary)
-            .scaleEffect(item.isCompleted ? 1 : 0.9)
+            .foregroundStyle((item.isCompleted || isCompleting) ? Color.primary : .secondary)
+            .scaleEffect(item.isCompleted || isCompleting ? 1 : 0.9)
             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: item.isCompleted)
+            .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isCompleting)
+            .background(GeometryReader { geometry in
+                Color.clear.preference(
+                    key: CheckboxFrameKey.self,
+                    value: geometry.frame(in: .global)
+                )
+            })
             .onTapGesture {
                 handleToggle()
             }
@@ -108,6 +132,9 @@ struct TodoRowView: View {
             .foregroundStyle(item.isCompleted ? .secondary : .primary)
             .lineLimit(item.isCompleted ? 1 : ((isKeyboardFocused || isExpanded) ? nil : 2))
             .contentTransition(.opacity)
+            .offset(x: isCompleting ? -320 : 0)
+            .opacity(isCompleting ? 0 : 1)
+            .animation(.easeOut(duration: 0.25), value: isCompleting)
             .animation(.easeInOut(duration: 0.2), value: item.isCompleted)
             .animation(.easeInOut(duration: 0.2), value: isKeyboardFocused || isExpanded)
     }
@@ -122,8 +149,9 @@ struct TodoRowView: View {
                 Capsule()
                     .fill(Color.primary.opacity(0.08))
             }
-            .opacity(showTimestamp ? 1 : 0)
-            .blur(radius: showTimestamp ? 0 : 8)
+            .opacity(showTimestamp && !isCompleting ? 1 : 0)
+            .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
+            .animation(.easeOut(duration: 0.2), value: isCompleting)
             .animation(.easeOut(duration: 0.25), value: showTimestamp)
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -159,20 +187,40 @@ struct TodoRowView: View {
         // Only celebrate when completing, not uncompleting
         if !item.isCompleted {
             Task { @MainActor in
-                showRipple = true
                 try? await Task.sleep(for: .milliseconds(100))
                 showConfetti = true
+                isCompleting = true
                 try? await Task.sleep(for: .milliseconds(400))
-                showRipple = false
                 showConfetti = false
+                
+                // Trigger travel animation
+                onStartTravel?(checkboxFrame != .zero ? checkboxFrame : rowFrame)
+                
                 withAnimation(.easeInOut(duration: 0.2)) {
                     item.isCompleted.toggle()
                 }
+                // Reset completing state after animation
+                try? await Task.sleep(for: .milliseconds(200))
+                isCompleting = false
             }
         } else {
             withAnimation(.easeInOut(duration: 0.2)) {
                 item.isCompleted.toggle()
             }
         }
+    }
+}
+
+private struct RowFrameKey: PreferenceKey {
+    nonisolated(unsafe) static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
+    }
+}
+
+private struct CheckboxFrameKey: PreferenceKey {
+    nonisolated(unsafe) static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
     }
 }

@@ -53,6 +53,7 @@ struct ConfettiView: View {
                 context.translateBy(x: -x, y: -y)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .allowsHitTesting(false)
         .onChange(of: isActive) { _, active in
             if active {
