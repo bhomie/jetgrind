@@ -21,7 +21,7 @@ struct CompletedPillView: View {
                 .contentTransition(.numericText())
                 .scaleEffect(countScale)
         }
-        .font(.system(size: 10, weight: .medium))
+        .font(.system(size: Theme.Font.bodyMedium, weight: .medium))
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(

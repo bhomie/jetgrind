@@ -45,7 +45,7 @@ struct TodoListView: View {
                     // Only completed items exist - show message
                     VStack(spacing: 12) {
                         Image(systemName: "party.popper")
-                            .font(.system(size: 48))
+                            .font(.system(size: Theme.Font.emptyStateIcon))
                             .foregroundStyle(.tertiary)
                         Text("All done!")
                             .font(.headline)
@@ -160,7 +160,7 @@ struct TodoListView: View {
     private var emptyStateView: some View {
         VStack(spacing: 12) {
             Image(systemName: "checkmark.circle")
-                .font(.system(size: 48))
+                .font(.system(size: Theme.Font.emptyStateIcon))
                 .foregroundStyle(.tertiary)
                 .opacity(showEmptyState ? 1.0 : 0)
                 .blur(radius: showEmptyState ? 0 : 8)
@@ -212,7 +212,7 @@ struct TodoListView: View {
             
             // Traveling checkmark
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 16))
+                .font(.system(size: Theme.Font.icon))
                 .foregroundStyle(.primary)
                 .scaleEffect(scale)
                 .position(x: currentX, y: currentY)

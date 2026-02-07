@@ -54,7 +54,7 @@ struct TodoRowView: View {
             checkboxFrame = frame
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
-        .opacity(item.isCompleted ? 0.5 : 1.0)
+        .opacity(item.isCompleted ? Theme.Opacity.completedRow : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         .confettiOverlay(isActive: showConfetti)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
@@ -109,7 +109,7 @@ struct TodoRowView: View {
 
     private var checkboxView: some View {
         Image(systemName: (item.isCompleted || isCompleting) ? "checkmark.circle.fill" : "circle")
-            .font(.system(size: 16))
+            .font(.system(size: Theme.Font.icon))
             .foregroundStyle((item.isCompleted || isCompleting) ? Color.primary : .secondary)
             .scaleEffect(item.isCompleted || isCompleting ? 1 : 0.9)
             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: item.isCompleted)
@@ -127,7 +127,7 @@ struct TodoRowView: View {
 
     private var titleView: some View {
         Text(item.title)
-            .font(.system(size: 12, weight: .medium))
+            .font(.system(size: Theme.Font.titleMedium, weight: .medium))
             .strikethrough(item.isCompleted)
             .foregroundStyle(item.isCompleted ? .secondary : .primary)
             .lineLimit(item.isCompleted ? 1 : ((isKeyboardFocused || isExpanded) ? nil : 2))
@@ -141,13 +141,13 @@ struct TodoRowView: View {
 
     private var timestampView: some View {
         Text(item.createdAt.relativeFormat)
-            .font(.system(size: 7))
+            .font(.system(size: Theme.Font.timestamp))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
             .background {
                 Capsule()
-                    .fill(Color.primary.opacity(0.08))
+                    .fill(Color.primary.opacity(Theme.Opacity.pillBackground))
             }
             .opacity(showTimestamp && !isCompleting ? 1 : 0)
             .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
@@ -165,12 +165,12 @@ struct TodoRowView: View {
             Spacer()
                 .frame(width: isActive ? 12 : 0)
             Button(action: onDelete) {
-                Image(systemName: "delete.backward")
-                    .font(.system(size: 14))
+                Image(systemName: "arrow.return.left")
+                    .font(.system(size: Theme.Font.icon))
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
-            .opacity(isActive ? 0.8 : 0)
+            .opacity(isActive ? Theme.Opacity.buttonActive : 0)
             .scaleEffect(isActive ? 1 : 0.2)
             .frame(width: isActive ? nil : 0)
             .clipped()
@@ -180,7 +180,7 @@ struct TodoRowView: View {
     }
 
     private var backgroundColor: Color {
-        isHighlighted ? Color.primary.opacity(0.05) : Color.clear
+        isHighlighted ? Color.primary.opacity(Theme.Opacity.rowHighlight) : Color.clear
     }
 
     private func handleToggle() {
@@ -188,7 +188,7 @@ struct TodoRowView: View {
         if !item.isCompleted {
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(100))
-                showConfetti = true
+            showConfetti = true
                 isCompleting = true
                 try? await Task.sleep(for: .milliseconds(400))
                 showConfetti = false

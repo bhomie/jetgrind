@@ -15,7 +15,7 @@ struct AddTodoView: View {
         HStack(spacing: 12) {
             TextField("Add a task...", text: $title)
                 .textFieldStyle(.plain)
-                .font(.system(size: 12))
+                .font(.system(size: Theme.Font.body))
                 .focused(focus, equals: .input)
                 .onSubmit {
                     guard hasValidText else { return }
@@ -38,8 +38,8 @@ struct AddTodoView: View {
 
             Image(systemName: "plus.circle.fill")
                 .foregroundStyle(Color.accentColor)
-                .font(.system(size: 18))
-                .frame(width: 18, height: 18)
+                .font(.system(size: Theme.Font.iconLarge))
+                .frame(width: Theme.Font.iconLarge, height: Theme.Font.iconLarge)
                 .opacity(hasValidText ? 1 : 0)
                 .scaleEffect(hasValidText ? 1 : 0.2)
                 .animation(.spring(response: 0.4, dampingFraction: 0.6), value: hasValidText)
@@ -48,7 +48,7 @@ struct AddTodoView: View {
         .padding(.horizontal, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(.primary.opacity(0.15))
+                .fill(.primary.opacity(Theme.Opacity.inputBackground))
         )
         .padding(.horizontal, 8)
         .padding(.top, 8)

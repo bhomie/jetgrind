@@ -14,7 +14,7 @@ struct CompletedSheetView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             // Dimmed background
-            Color.black.opacity(0.3)
+            Color.black.opacity(Theme.Opacity.overlayDim)
                 .ignoresSafeArea()
                 .onTapGesture {
                     dismiss()
@@ -24,7 +24,7 @@ struct CompletedSheetView: View {
             VStack(spacing: 0) {
                 // Drag handle
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(.secondary.opacity(0.5))
+                    .fill(.secondary.opacity(Theme.Opacity.handleMuted))
                     .frame(width: 36, height: 4)
                     .padding(.top, 8)
                     .padding(.bottom, 12)
@@ -32,10 +32,10 @@ struct CompletedSheetView: View {
                 // Header
                 HStack {
                     Text("Completed")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: Theme.Font.bodySemibold, weight: .semibold))
                     Spacer()
                     Text("\(completedItems.count)")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: Theme.Font.bodyMedium, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal, 16)
@@ -99,11 +99,11 @@ struct CompletedSheetView: View {
         
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 16))
-                .foregroundStyle(.green)
+                .font(.system(size: Theme.Font.icon))
+                .foregroundStyle(Theme.Color.completedCheckmark)
 
             Text(item.title)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: Theme.Font.bodyMedium, weight: .medium))
                 .strikethrough()
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -111,15 +111,15 @@ struct CompletedSheetView: View {
             Spacer()
 
             Text(item.createdAt.relativeFormat)
-                .font(.system(size: 7))
+                .font(.system(size: Theme.Font.body))
                 .foregroundStyle(.tertiary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
-                .background(Capsule().fill(Color.primary.opacity(0.05)))
+                .background(Capsule().fill(Color.primary.opacity(Theme.Opacity.rowHighlight)))
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 16)
-        .background(isFocused ? Color.primary.opacity(0.05) : Color.clear)
+        .background(isFocused ? Color.primary.opacity(Theme.Opacity.rowHighlight) : Color.clear)
         .focusable()
         .focused(focus, equals: .completedTask(item.id))
         .focusEffectDisabled()

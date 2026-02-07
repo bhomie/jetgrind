@@ -13,7 +13,7 @@ struct RippleEffect: ViewModifier {
                             LinearGradient(
                                 colors: [
                                     Color.accentColor.opacity(0),
-                                    Color.accentColor.opacity(0.3),
+                                    Color.accentColor.opacity(Theme.Opacity.rippleAccent),
                                     Color.accentColor.opacity(0)
                                 ],
                                 startPoint: UnitPoint(x: progress - 0.3, y: 0.5),
