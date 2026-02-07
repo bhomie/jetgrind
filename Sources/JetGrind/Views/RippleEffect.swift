@@ -26,7 +26,7 @@ struct RippleEffect: ViewModifier {
             .onChange(of: isActive) { _, active in
                 if active {
                     progress = -0.3
-                    withAnimation(.easeInOut(duration: 0.4)) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                         progress = 1.3
                     }
                 }

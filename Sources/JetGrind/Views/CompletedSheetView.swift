@@ -140,7 +140,7 @@ struct CompletedSheetView: View {
         .onKeyPress(.space) {
             // Uncomplete the task
             if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     store.items[idx].isCompleted = false
                 }
                 // Move focus to next item or close if none left
@@ -157,7 +157,7 @@ struct CompletedSheetView: View {
         .onKeyPress(.return) {
             // Uncomplete the task
             if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     store.items[idx].isCompleted = false
                 }
                 // Move focus to next item or close if none left

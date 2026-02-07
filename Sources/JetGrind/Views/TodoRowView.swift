@@ -53,16 +53,16 @@ struct TodoRowView: View {
         .onPreferenceChange(CheckboxFrameKey.self) { frame in
             checkboxFrame = frame
         }
-        .animation(.easeInOut(duration: 0.2), value: isHighlighted)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? 0.5 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: item.isCompleted)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         .confettiOverlay(isActive: showConfetti)
-        .animation(.easeInOut(duration: 0.2), value: isKeyboardFocused || isExpanded)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
         .onHover { hovering in
             isHovered = hovering
         }
         .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.2)) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 isExpanded.toggle()
             }
         }
@@ -134,9 +134,9 @@ struct TodoRowView: View {
             .contentTransition(.opacity)
             .offset(x: isCompleting ? -320 : 0)
             .opacity(isCompleting ? 0 : 1)
-            .animation(.easeOut(duration: 0.25), value: isCompleting)
-            .animation(.easeInOut(duration: 0.2), value: item.isCompleted)
-            .animation(.easeInOut(duration: 0.2), value: isKeyboardFocused || isExpanded)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
     }
 
     private var timestampView: some View {
@@ -151,8 +151,8 @@ struct TodoRowView: View {
             }
             .opacity(showTimestamp && !isCompleting ? 1 : 0)
             .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
-            .animation(.easeOut(duration: 0.2), value: isCompleting)
-            .animation(.easeOut(duration: 0.25), value: showTimestamp)
+            .animation(.spring(response: 0.25, dampingFraction: 0.85), value: isCompleting)
+            .animation(.spring(response: 0.3, dampingFraction: 0.85), value: showTimestamp)
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     showTimestamp = true
@@ -196,7 +196,7 @@ struct TodoRowView: View {
                 // Trigger travel animation
                 onStartTravel?(checkboxFrame != .zero ? checkboxFrame : rowFrame)
                 
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     item.isCompleted.toggle()
                 }
                 // Reset completing state after animation
@@ -204,7 +204,7 @@ struct TodoRowView: View {
                 isCompleting = false
             }
         } else {
-            withAnimation(.easeInOut(duration: 0.2)) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 item.isCompleted.toggle()
             }
         }

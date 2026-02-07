@@ -33,7 +33,7 @@ struct TodoListView: View {
                     injectedText: $injectedText,
                     firstTaskId: incompleteItems.first?.id,
                     onAdd: { title in
-                        withAnimation(.easeOut(duration: 0.25)) {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             store.add(title: title)
                         }
                     }
@@ -117,7 +117,7 @@ struct TodoListView: View {
         }
         .onChange(of: store.items.isEmpty) { _, isEmpty in
             if isEmpty {
-                withAnimation(.easeOut(duration: 0.3).delay(0.1)) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.85).delay(0.1)) {
                     showEmptyState = true
                 }
             } else {
@@ -146,7 +146,7 @@ struct TodoListView: View {
             nextTaskId: nextTaskId,
             hasCompletedItems: !completedItems.isEmpty,
             onDelete: {
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     store.delete(id: item.id)
                 }
             },
@@ -178,7 +178,7 @@ struct TodoListView: View {
                 .blur(radius: showEmptyState ? 0 : 4)
         }
         .frame(maxHeight: .infinity)
-        .animation(.easeOut(duration: 0.3), value: showEmptyState)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: showEmptyState)
     }
 
     @ViewBuilder
@@ -233,7 +233,7 @@ struct TodoListView: View {
         travelingTasks.append(task)
         
         // Animate the travel
-        withAnimation(.easeInOut(duration: 0.5)) {
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
             if let index = travelingTasks.firstIndex(where: { $0.id == item.id }) {
                 travelingTasks[index].progress = 1.0
             }
