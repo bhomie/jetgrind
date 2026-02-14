@@ -8,6 +8,7 @@ enum TodoFocus: Hashable {
     case actionEdit(UUID)
     case actionDelete(UUID)
     case editing(UUID)
+    case editingDescription(UUID)
 
     var actionTaskId: UUID? {
         switch self {

@@ -16,6 +16,8 @@ struct TodoListView: View {
     @State private var pillFrame: CGRect = .zero
     @State private var travelingTasks: [TravelingTask] = []
     @State private var taskToAbsorb: UUID?
+    @State private var expandedTaskId: UUID?
+    @State private var editingTaskId: UUID?
     private var incompleteItems: [TodoItem] {
         store.items.filter { !$0.isCompleted }
     }
@@ -114,6 +116,24 @@ struct TodoListView: View {
             focus = .input
             return .handled
         }
+        .onChange(of: focus) { _, newFocus in
+            switch newFocus {
+            case .input, .completedPill:
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    expandedTaskId = nil
+                }
+            case .task(let id):
+                let item = store.items.first { $0.id == id }
+                let hasContent = item?.description != nil || !(item?.links.isEmpty ?? true)
+                if hasContent {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        expandedTaskId = id
+                    }
+                }
+            default:
+                break
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .focusTaskInput)) { _ in
             focus = .input
         }
@@ -141,6 +161,12 @@ struct TodoListView: View {
                 }
             }
         )
+        let expandedBinding = Binding(
+            get: { expandedTaskId == item.id },
+            set: { newValue in
+                expandedTaskId = newValue ? item.id : nil
+            }
+        )
         TodoRowView(
             item: itemBinding,
             store: store,
@@ -155,6 +181,18 @@ struct TodoListView: View {
             },
             onStartTravel: { frame in
                 startTravelAnimation(for: item, from: frame)
+            },
+            isExpanded: expandedBinding,
+            isEditBlurred: editingTaskId != nil && editingTaskId != item.id,
+            onExpand: {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    expandedTaskId = item.id
+                }
+            },
+            onEditingChanged: { isEditing in
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    editingTaskId = isEditing ? item.id : nil
+                }
             }
         )
         .transition(.opacity)

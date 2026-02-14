@@ -26,6 +26,12 @@ enum Theme {
         static let actionLabel: CGFloat = 11
         /// Action button icon
         static let actionIcon: CGFloat = 12
+        /// Description text
+        static let description: CGFloat = 13
+        /// Link pill label
+        static let linkPillLabel: CGFloat = 11
+        /// Link pill favicon
+        static let linkPillFavicon: CGFloat = 12
     }
 
     // MARK: - Opacities
@@ -49,6 +55,14 @@ enum Theme {
         static let handleMuted: Double = 0.5
         /// Ripple effect accent
         static let rippleAccent: Double = 0.3
+        /// Description text
+        static let descriptionText: Double = 0.7
+        /// Link pill background
+        static let linkPillBackground: Double = 0.10
+        /// Link pill hover
+        static let linkPillHover: Double = 0.15
+        /// Edit dim on non-editing rows
+        static let editDimOpacity: Double = 0.4
     }
 
     // MARK: - Sizes
@@ -57,6 +71,12 @@ enum Theme {
         static let actionButtonSize: CGFloat = 26
         static let actionButtonExpandedWidth: CGFloat = 72
         static let actionButtonSpacing: CGFloat = 4
+        static let linkPillHeight: CGFloat = 22
+        static let linkPillCornerRadius: CGFloat = 11
+        static let linkPillPaddingH: CGFloat = 8
+        static let linkPillSpacing: CGFloat = 6
+        static let linkPillInternalSpacing: CGFloat = 4
+        static let editBlurRadius: CGFloat = 3.0
     }
 
     // MARK: - Semantic colors
@@ -64,5 +84,6 @@ enum Theme {
     enum Color {
         /// Completed task checkmark (e.g. in sheet)
         static let completedCheckmark = SwiftUI.Color.green
+        static let linkPillText = SwiftUI.Color.accentColor
     }
 }

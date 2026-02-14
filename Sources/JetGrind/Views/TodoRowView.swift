@@ -9,15 +9,19 @@ struct TodoRowView: View {
     let hasCompletedItems: Bool
     let onDelete: () -> Void
     var onStartTravel: ((CGRect) -> Void)?
+    @Binding var isExpanded: Bool
+    let isEditBlurred: Bool
+    let onExpand: () -> Void
+    let onEditingChanged: ((Bool) -> Void)?
 
     @State private var isHovered = false
     @State private var showTimestamp = false
-    @State private var isExpanded = false
     @State private var showConfetti = false
     @State private var isCompleting = false
     @State private var checkboxFrame: CGRect = .zero
     @State private var isEditing = false
     @State private var editText = ""
+    @State private var editDescription = ""
 
     private var isActive: Bool {
         !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id))
@@ -40,22 +44,37 @@ struct TodoRowView: View {
         }
     }
 
+    private var hasExpandedContent: Bool {
+        item.description != nil || !item.links.isEmpty
+    }
+
     var body: some View {
-        HStack(alignment: .center, spacing: 0) {
-            checkboxView
-            ZStack(alignment: .leading) {
-                titleView
-                    .opacity(isEditing ? 0 : 1)
-                inlineEditField
-                    .opacity(isEditing ? 1 : 0)
-                    .allowsHitTesting(isEditing)
+        VStack(alignment: .leading, spacing: 0) {
+            // Title row
+            HStack(alignment: .center, spacing: 0) {
+                checkboxView
+                ZStack(alignment: .leading) {
+                    titleView
+                        .opacity(isEditing ? 0 : 1)
+                    inlineEditField
+                        .opacity(isEditing ? 1 : 0)
+                        .allowsHitTesting(isEditing)
+                }
+                .padding(.leading, 8)
+                Spacer()
+                if !isEditing {
+                    timestampView
+                }
+                actionArea
             }
-            .padding(.leading, 8)
-            Spacer()
-            if !isEditing {
-                timestampView
+
+            // Expanded content: description + link pills
+            if (isExpanded || isEditing) && hasExpandedContent {
+                expandedContent
+                    .padding(.leading, 24 + 8) // checkbox width + leading padding
+                    .padding(.top, 4)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            actionArea
         }
         .padding(.horizontal, 8)
         .padding(.bottom, 8)
@@ -69,8 +88,10 @@ struct TodoRowView: View {
             }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
-        .opacity(item.isCompleted ? Theme.Opacity.completedRow : 1.0)
+        .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
+        .blur(radius: isEditBlurred ? Theme.Size.editBlurRadius : 0)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditBlurred)
         .confettiOverlay(isActive: showConfetti)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
@@ -78,8 +99,14 @@ struct TodoRowView: View {
             isHovered = hovering
         }
         .onTapGesture {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                isExpanded.toggle()
+            if hasExpandedContent {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    if isExpanded {
+                        isExpanded = false
+                    } else {
+                        onExpand()
+                    }
+                }
             }
         }
         .focusable()
@@ -190,13 +217,12 @@ struct TodoRowView: View {
             .font(.system(size: Theme.Font.titleMedium, weight: .medium))
             .strikethrough(item.isCompleted)
             .foregroundStyle(item.isCompleted ? .secondary : .primary)
-            .lineLimit(isInActionMode || item.isCompleted ? 1 : ((isKeyboardFocused || isExpanded) ? nil : 2))
+            .lineLimit(1)
             .contentTransition(.opacity)
             .blur(radius: isCompleting ? 8 : 0)
             .opacity(isCompleting ? 0 : 1)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
-            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
     }
 
     private var inlineEditField: some View {
@@ -207,15 +233,60 @@ struct TodoRowView: View {
             .focused(focus, equals: .editing(item.id))
             .focusEffectDisabled()
             .onSubmit {
-                store.updateTitle(id: item.id, newTitle: editText)
-                isEditing = false
-                focus.wrappedValue = .task(item.id)
+                if item.description != nil || !editDescription.isEmpty {
+                    // Tab to description field
+                    focus.wrappedValue = .editingDescription(item.id)
+                } else {
+                    commitEdit()
+                }
             }
             .onKeyPress(.escape) {
-                isEditing = false
-                focus.wrappedValue = .task(item.id)
+                cancelEdit()
                 return .handled
             }
+            .onKeyPress(.tab) {
+                if item.description != nil || !editDescription.isEmpty {
+                    focus.wrappedValue = .editingDescription(item.id)
+                    return .handled
+                }
+                return .ignored
+            }
+    }
+
+    @ViewBuilder
+    private var expandedContent: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if isEditing {
+                TextField("Add description...", text: $editDescription, axis: .vertical)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: Theme.Font.description))
+                    .foregroundStyle(.primary.opacity(Theme.Opacity.descriptionText))
+                    .lineLimit(1...5)
+                    .focusable()
+                    .focused(focus, equals: .editingDescription(item.id))
+                    .focusEffectDisabled()
+                    .onSubmit {
+                        commitEdit()
+                    }
+                    .onKeyPress(.escape) {
+                        cancelEdit()
+                        return .handled
+                    }
+            } else if let description = item.description {
+                Text(description)
+                    .font(.system(size: Theme.Font.description))
+                    .foregroundStyle(.primary.opacity(Theme.Opacity.descriptionText))
+                    .lineLimit(isExpanded ? nil : 2)
+            }
+
+            if !item.links.isEmpty {
+                FlowLayout(spacing: Theme.Size.linkPillSpacing) {
+                    ForEach(item.links) { link in
+                        LinkPillView(link: link)
+                    }
+                }
+            }
+        }
     }
 
     private var actionArea: some View {
@@ -299,10 +370,30 @@ struct TodoRowView: View {
     private func startEditing() {
         isEditing = true
         editText = item.title
+        editDescription = item.description ?? ""
+        onEditingChanged?(true)
+        if !isExpanded && hasExpandedContent {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                onExpand()
+            }
+        }
         focus.wrappedValue = .editing(item.id)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             NSApp.sendAction(#selector(NSResponder.selectAll(_:)), to: nil, from: nil)
         }
+    }
+
+    private func commitEdit() {
+        store.updateTitleAndDescription(id: item.id, newTitle: editText, newDescription: editDescription.isEmpty ? nil : editDescription)
+        isEditing = false
+        onEditingChanged?(false)
+        focus.wrappedValue = .task(item.id)
+    }
+
+    private func cancelEdit() {
+        isEditing = false
+        onEditingChanged?(false)
+        focus.wrappedValue = .task(item.id)
     }
 
     private func handleToggle() {
