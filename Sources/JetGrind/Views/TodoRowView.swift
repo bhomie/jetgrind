@@ -369,6 +369,7 @@ struct TodoRowView: View {
                     .font(.system(size: Theme.Font.actionIcon))
                 Text(label)
                     .font(.system(size: Theme.Font.actionLabel, weight: .medium))
+                    .fixedSize(horizontal: true, vertical: false)
                     .transition(.asymmetric(
                         insertion: .push(from: .leading),
                         removal: .push(from: .trailing)
