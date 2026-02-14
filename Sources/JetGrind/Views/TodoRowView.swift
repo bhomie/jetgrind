@@ -50,12 +50,18 @@ struct TodoRowView: View {
                     .opacity(isEditing ? 1 : 0)
                     .allowsHitTesting(isEditing)
             }
-            .padding(.leading, 12)
+            .padding(.leading, 8)
             Spacer()
             if !isEditing {
                 timestampView
             }
             actionArea
+        }
+        .padding(.horizontal, 8)
+        .padding(.bottom, 8)
+        .background {
+            Rectangle()
+                .fill(Color.primary.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
         }
         .onPreferenceChange(CheckboxFrameKey.self) { frame in
             DispatchQueue.main.async {

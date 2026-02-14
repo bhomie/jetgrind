@@ -12,7 +12,7 @@ struct AddTodoView: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack() {
             TextField("Add a task...", text: $title)
                 .textFieldStyle(.plain)
                 .font(.system(size: Theme.Font.body))
@@ -51,6 +51,6 @@ struct AddTodoView: View {
                 .fill(.primary.opacity(Theme.Opacity.inputBackground))
         )
         .padding(.horizontal, 8)
-        .padding(.top, 8)
+        .padding(.vertical, 8)
     }
 }

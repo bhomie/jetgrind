@@ -85,7 +85,7 @@ struct TodoListView: View {
                         )
                         Spacer()
                     }
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 8)
                     .padding(.bottom, 8)
                 }
             }
