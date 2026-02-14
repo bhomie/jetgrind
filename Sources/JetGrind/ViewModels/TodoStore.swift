@@ -30,7 +30,15 @@ final class TodoStore {
         save()
     }
 
-    private func save() {
+    func updateTitle(id: UUID, newTitle: String) {
+        let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              let index = items.firstIndex(where: { $0.id == id }) else { return }
+        items[index].title = trimmed
+        save()
+    }
+
+    func save() {
         guard let data = try? JSONEncoder().encode(items) else { return }
         UserDefaults.standard.set(data, forKey: Self.storageKey)
     }

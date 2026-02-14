@@ -52,10 +52,6 @@ struct CompletedPillView: View {
             onOpen()
             return .handled
         }
-        .onKeyPress(.space) {
-            onOpen()
-            return .handled
-        }
         .onKeyPress(.return) {
             onOpen()
             return .handled

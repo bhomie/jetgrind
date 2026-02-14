@@ -12,15 +12,8 @@ struct CompletedSheetView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Dimmed background
-            Color.black.opacity(Theme.Opacity.overlayDim)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    dismiss()
-                }
-
-            // Sheet content
+        VStack(spacing: 0) {
+            Spacer()
             VStack(spacing: 0) {
                 // Drag handle
                 RoundedRectangle(cornerRadius: 2)
@@ -86,10 +79,31 @@ struct CompletedSheetView: View {
         }
     }
 
-    private func dismiss() {
+    private func uncompleteTask(item: TodoItem, nextId: UUID?, previousId: UUID?) {
+        guard let idx = store.items.firstIndex(where: { $0.id == item.id }) else { return }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            store.items[idx].isCompleted = false
+        }
+        store.save()
+        if let nextId = nextId {
+            focus.wrappedValue = .completedTask(nextId)
+        } else if let prevId = previousId {
+            focus.wrappedValue = .completedTask(prevId)
+        } else {
+            dismiss(focusTaskId: item.id)
+        }
+    }
+
+    private func dismiss(focusTaskId: UUID? = nil) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             isPresented = false
-            focus.wrappedValue = .completedPill
+            if let taskId = focusTaskId {
+                focus.wrappedValue = .task(taskId)
+            } else if completedItems.isEmpty {
+                focus.wrappedValue = .input
+            } else {
+                focus.wrappedValue = .completedPill
+            }
         }
     }
 
@@ -137,38 +151,8 @@ struct CompletedSheetView: View {
             }
             return .handled
         }
-        .onKeyPress(.space) {
-            // Uncomplete the task
-            if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    store.items[idx].isCompleted = false
-                }
-                // Move focus to next item or close if none left
-                if let nextId = nextId {
-                    focus.wrappedValue = .completedTask(nextId)
-                } else if let prevId = previousId {
-                    focus.wrappedValue = .completedTask(prevId)
-                } else {
-                    dismiss()
-                }
-            }
-            return .handled
-        }
         .onKeyPress(.return) {
-            // Uncomplete the task
-            if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    store.items[idx].isCompleted = false
-                }
-                // Move focus to next item or close if none left
-                if let nextId = nextId {
-                    focus.wrappedValue = .completedTask(nextId)
-                } else if let prevId = previousId {
-                    focus.wrappedValue = .completedTask(prevId)
-                } else {
-                    dismiss()
-                }
-            }
+            uncompleteTask(item: item, nextId: nextId, previousId: previousId)
             return .handled
         }
     }

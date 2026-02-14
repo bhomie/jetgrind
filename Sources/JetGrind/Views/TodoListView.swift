@@ -16,7 +16,6 @@ struct TodoListView: View {
     @State private var pillFrame: CGRect = .zero
     @State private var travelingTasks: [TravelingTask] = []
     @State private var taskToAbsorb: UUID?
-
     private var incompleteItems: [TodoItem] {
         store.items.filter { !$0.isCompleted }
     }
@@ -93,10 +92,13 @@ struct TodoListView: View {
         }
         .frame(width: 320, height: 400)
         .onPreferenceChange(CompletedPillAnchorKey.self) { frame in
-            pillFrame = frame
+            DispatchQueue.main.async {
+                pillFrame = frame
+            }
         }
         .overlay { travelingTasksOverlay }
-        .overlay { completedSheetOverlay }
+        .overlay { completedDimmerOverlay }
+        .overlay { completedSheetContent }
         .onKeyPress { keyPress in
             guard store.items.isEmpty,
                   focus != .input,
@@ -141,6 +143,7 @@ struct TodoListView: View {
         )
         TodoRowView(
             item: itemBinding,
+            store: store,
             focus: $focus,
             previousTaskId: previousTaskId,
             nextTaskId: nextTaskId,
@@ -154,7 +157,7 @@ struct TodoListView: View {
                 startTravelAnimation(for: item, from: frame)
             }
         )
-        .transition(.blurReplace)
+        .transition(.opacity)
     }
 
     private var emptyStateView: some View {
@@ -221,7 +224,21 @@ struct TodoListView: View {
     }
 
     @ViewBuilder
-    private var completedSheetOverlay: some View {
+    private var completedDimmerOverlay: some View {
+        if showCompletedSheet {
+            Color.black.opacity(Theme.Opacity.overlayDim)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showCompletedSheet = false
+                        focus = .completedPill
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var completedSheetContent: some View {
         if showCompletedSheet {
             CompletedSheetView(store: store, isPresented: $showCompletedSheet, focus: $focus)
                 .transition(.move(edge: .bottom).combined(with: .opacity))

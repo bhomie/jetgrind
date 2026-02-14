@@ -14,6 +14,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let store = TodoStore()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let mainBundle = CFBundleGetMainBundle()
+        if let infoDict = CFBundleGetInfoDictionary(mainBundle) {
+            let mutableDict = infoDict as! CFMutableDictionary  // CF info dict is always mutable
+            CFDictionarySetValue(
+                mutableDict,
+                Unmanaged.passUnretained("CFBundleIdentifier" as CFString).toOpaque(),
+                Unmanaged.passUnretained("com.jetgrind.app" as CFString).toOpaque()
+            )
+        }
         setupStatusItem()
         setupPopover()
         setupHotKey()
@@ -34,7 +43,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupPopover() {
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 320, height: 400)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: TodoListView(store: store))
     }

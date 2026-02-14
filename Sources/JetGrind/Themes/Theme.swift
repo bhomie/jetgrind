@@ -22,6 +22,10 @@ enum Theme {
         static let iconLarge: CGFloat = 18
         /// Empty state / hero icon
         static let emptyStateIcon: CGFloat = 48
+        /// Action button label text
+        static let actionLabel: CGFloat = 11
+        /// Action button icon
+        static let actionIcon: CGFloat = 12
     }
 
     // MARK: - Opacities
@@ -37,12 +41,22 @@ enum Theme {
         static let buttonActive: Double = 0.8
         /// Add-todo / input container background
         static let inputBackground: Double = 0.15
+        /// Link overlay backdrop dim
+        static let linkOverlayDim: Double = 0.6
         /// Sheet overlay dim
         static let overlayDim: Double = 0.3
         /// Sheet drag handle
         static let handleMuted: Double = 0.5
         /// Ripple effect accent
         static let rippleAccent: Double = 0.3
+    }
+
+    // MARK: - Sizes
+
+    enum Size {
+        static let actionButtonSize: CGFloat = 26
+        static let actionButtonExpandedWidth: CGFloat = 72
+        static let actionButtonSpacing: CGFloat = 4
     }
 
     // MARK: - Semantic colors
