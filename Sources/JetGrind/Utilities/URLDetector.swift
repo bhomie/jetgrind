@@ -22,6 +22,15 @@ enum URLDetector {
             .joined(separator: " ")
     }
 
+    static func extractMatches(from text: String) -> [(url: URL, range: Range<String.Index>)] {
+        let range = NSRange(text.startIndex..., in: text)
+        return urlPattern.matches(in: text, range: range).compactMap { match in
+            guard let swiftRange = Range(match.range, in: text),
+                  let url = URL(string: String(text[swiftRange])) else { return nil }
+            return (url: url, range: swiftRange)
+        }
+    }
+
     static func isSingleURL(_ text: String) -> Bool {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let url = URL(string: trimmed),

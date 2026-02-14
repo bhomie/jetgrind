@@ -77,6 +77,10 @@ enum Theme {
         static let linkPillSpacing: CGFloat = 6
         static let linkPillInternalSpacing: CGFloat = 4
         static let editBlurRadius: CGFloat = 3.0
+        static let inlinePillHeight: CGFloat = 18
+        static let inlinePillPaddingH: CGFloat = 6
+        static let inlinePillIconSize: CGFloat = 11
+        static let inlinePillFontSize: CGFloat = 11
     }
 
     // MARK: - Semantic colors

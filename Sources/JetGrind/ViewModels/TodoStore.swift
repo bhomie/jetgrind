@@ -4,6 +4,7 @@ import Foundation
 @Observable
 final class TodoStore {
     private static let storageKey = "jetgrind.todos"
+    private static let migrationKey = "jetgrind.migratedToMarkerFormat"
 
     var items: [TodoItem] = []
 
@@ -72,6 +73,26 @@ final class TodoStore {
         save()
     }
 
+    func updateTitleDescriptionAndLinks(id: UUID, title: String, description: String?, links: [LinkItem]) {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty,
+              let index = items.firstIndex(where: { $0.id == id }) else { return }
+
+        items[index].title = trimmedTitle
+        let trimmedDesc = description?.trimmingCharacters(in: .whitespacesAndNewlines)
+        items[index].description = (trimmedDesc?.isEmpty ?? true) ? nil : trimmedDesc
+        items[index].links = links
+        save()
+
+        // Fetch favicons for any new links missing data
+        let itemId = items[index].id
+        for (linkIndex, link) in links.enumerated() where link.faviconData == nil {
+            Task {
+                await self.fetchFaviconForLink(itemId: itemId, linkIndex: linkIndex, url: link.url)
+            }
+        }
+    }
+
     func save() {
         guard let data = try? JSONEncoder().encode(items) else { return }
         UserDefaults.standard.set(data, forKey: Self.storageKey)
@@ -83,6 +104,37 @@ final class TodoStore {
             return
         }
         items = decoded
+        migrateToMarkerFormat()
+    }
+
+    // MARK: - Migration
+
+    private func migrateToMarkerFormat() {
+        guard !UserDefaults.standard.bool(forKey: Self.migrationKey) else { return }
+
+        var didMigrate = false
+        for i in items.indices {
+            // Migrate title
+            let titleResult = TextPillConverter.migrateRawURLs(text: items[i].title, existingLinks: items[i].links)
+            if titleResult.text != items[i].title {
+                items[i].title = titleResult.text
+                items[i].links = titleResult.links
+                didMigrate = true
+            }
+
+            // Migrate description
+            if let desc = items[i].description {
+                let descResult = TextPillConverter.migrateRawURLs(text: desc, existingLinks: items[i].links)
+                if descResult.text != desc {
+                    items[i].description = descResult.text
+                    items[i].links = descResult.links
+                    didMigrate = true
+                }
+            }
+        }
+
+        UserDefaults.standard.set(true, forKey: Self.migrationKey)
+        if didMigrate { save() }
     }
 
     // MARK: - Link Syncing

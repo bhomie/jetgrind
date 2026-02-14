@@ -22,6 +22,11 @@ struct TodoRowView: View {
     @State private var isEditing = false
     @State private var editText = ""
     @State private var editDescription = ""
+    @State private var editLinks: [LinkItem] = []
+    @State private var titleFocused = false
+    @State private var descriptionFocused = false
+    @State private var titleHeight: CGFloat = 20
+    @State private var descriptionHeight: CGFloat = 20
 
     private var isActive: Bool {
         !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id))
@@ -48,6 +53,15 @@ struct TodoRowView: View {
         item.description != nil || !item.links.isEmpty
     }
 
+    private var titleHasMarkers: Bool {
+        TextPillConverter.containsMarkers(item.title)
+    }
+
+    private var descriptionHasMarkers: Bool {
+        guard let desc = item.description else { return false }
+        return TextPillConverter.containsMarkers(desc)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Title row
@@ -68,8 +82,8 @@ struct TodoRowView: View {
                 actionArea
             }
 
-            // Expanded content: description + link pills
-            if (isExpanded || isEditing) && hasExpandedContent {
+            // Expanded content: description + inline pills
+            if isExpanded || isEditing {
                 expandedContent
                     .padding(.leading, 24 + 8) // checkbox width + leading padding
                     .padding(.top, 4)
@@ -113,6 +127,7 @@ struct TodoRowView: View {
         .focused(focus, equals: .task(item.id))
         .focusEffectDisabled()
         .onKeyPress(.upArrow) {
+            guard !isEditing else { return .ignored }
             if isInActionMode {
                 if let prevId = previousTaskId, let idx = focus.wrappedValue?.actionIndex {
                     focus.wrappedValue = TodoFocus.action(index: idx, taskId: prevId)
@@ -127,6 +142,7 @@ struct TodoRowView: View {
             return .handled
         }
         .onKeyPress(.downArrow) {
+            guard !isEditing else { return .ignored }
             if isInActionMode {
                 if let nextId = nextTaskId, let idx = focus.wrappedValue?.actionIndex {
                     focus.wrappedValue = TodoFocus.action(index: idx, taskId: nextId)
@@ -141,7 +157,7 @@ struct TodoRowView: View {
             return .handled
         }
         .onKeyPress(.rightArrow) {
-            guard !item.isCompleted else { return .ignored }
+            guard !isEditing, !item.isCompleted else { return .ignored }
             if isInActionMode {
                 if let idx = focus.wrappedValue?.actionIndex, idx < 1 {
                     focus.wrappedValue = TodoFocus.action(index: idx + 1, taskId: item.id)
@@ -155,6 +171,7 @@ struct TodoRowView: View {
             return .ignored
         }
         .onKeyPress(.leftArrow) {
+            guard !isEditing else { return .ignored }
             if isInActionMode {
                 if let idx = focus.wrappedValue?.actionIndex {
                     if idx > 0 {
@@ -212,74 +229,106 @@ struct TodoRowView: View {
             }
     }
 
+    @ViewBuilder
     private var titleView: some View {
-        Text(item.title)
-            .font(.system(size: Theme.Font.titleMedium, weight: .medium))
+        if titleHasMarkers {
+            PillTextView(
+                text: .constant(item.title),
+                links: .constant(item.links),
+                isEditable: false,
+                isSingleLine: true,
+                font: .systemFont(ofSize: Theme.Font.titleMedium, weight: .medium),
+                textColor: item.isCompleted ? .secondaryLabelColor : .labelColor,
+                isFocused: .constant(false),
+                height: .constant(20)
+            )
+            .frame(height: 20)
             .strikethrough(item.isCompleted)
-            .foregroundStyle(item.isCompleted ? .secondary : .primary)
-            .lineLimit(1)
             .contentTransition(.opacity)
             .blur(radius: isCompleting ? 8 : 0)
             .opacity(isCompleting ? 0 : 1)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
+        } else {
+            Text(item.title)
+                .font(.system(size: Theme.Font.titleMedium, weight: .medium))
+                .strikethrough(item.isCompleted)
+                .foregroundStyle(item.isCompleted ? .secondary : .primary)
+                .lineLimit(1)
+                .contentTransition(.opacity)
+                .blur(radius: isCompleting ? 8 : 0)
+                .opacity(isCompleting ? 0 : 1)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
+        }
     }
 
     private var inlineEditField: some View {
-        TextField("Edit task", text: $editText)
-            .textFieldStyle(.plain)
-            .font(.system(size: Theme.Font.titleMedium, weight: .medium))
-            .focusable()
-            .focused(focus, equals: .editing(item.id))
-            .focusEffectDisabled()
-            .onSubmit {
-                if item.description != nil || !editDescription.isEmpty {
-                    // Tab to description field
-                    focus.wrappedValue = .editingDescription(item.id)
-                } else {
-                    commitEdit()
-                }
-            }
-            .onKeyPress(.escape) {
-                cancelEdit()
-                return .handled
-            }
-            .onKeyPress(.tab) {
-                if item.description != nil || !editDescription.isEmpty {
-                    focus.wrappedValue = .editingDescription(item.id)
-                    return .handled
-                }
-                return .ignored
-            }
+        PillTextView(
+            text: $editText,
+            links: $editLinks,
+            isEditable: true,
+            isSingleLine: true,
+            font: .systemFont(ofSize: Theme.Font.titleMedium, weight: .medium),
+            textColor: .labelColor,
+            placeholderText: "Edit task",
+            onCommit: { commitEdit() },
+            onCancel: { cancelEdit() },
+            onNavigateDown: {
+                descriptionFocused = true
+                titleFocused = false
+            },
+            isFocused: $titleFocused,
+            height: $titleHeight
+        )
+        .frame(height: max(titleHeight, 20))
     }
 
     @ViewBuilder
     private var expandedContent: some View {
         VStack(alignment: .leading, spacing: 6) {
             if isEditing {
-                TextField("Add description...", text: $editDescription, axis: .vertical)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: Theme.Font.description))
-                    .foregroundStyle(.primary.opacity(Theme.Opacity.descriptionText))
-                    .lineLimit(1...5)
-                    .focusable()
-                    .focused(focus, equals: .editingDescription(item.id))
-                    .focusEffectDisabled()
-                    .onSubmit {
-                        commitEdit()
-                    }
-                    .onKeyPress(.escape) {
-                        cancelEdit()
-                        return .handled
-                    }
+                PillTextView(
+                    text: $editDescription,
+                    links: $editLinks,
+                    isEditable: true,
+                    isSingleLine: false,
+                    font: .systemFont(ofSize: Theme.Font.description),
+                    textColor: NSColor.labelColor.withAlphaComponent(Theme.Opacity.descriptionText),
+                    placeholderText: "Add description...",
+                    onCommit: { commitEdit() },
+                    onCancel: { cancelEdit() },
+                    onNavigateUp: {
+                        titleFocused = true
+                        descriptionFocused = false
+                    },
+                    isFocused: $descriptionFocused,
+                    height: $descriptionHeight
+                )
+                .frame(height: max(descriptionHeight, 18))
             } else if let description = item.description {
-                Text(description)
-                    .font(.system(size: Theme.Font.description))
-                    .foregroundStyle(.primary.opacity(Theme.Opacity.descriptionText))
-                    .lineLimit(isExpanded ? nil : 2)
+                if descriptionHasMarkers {
+                    PillTextView(
+                        text: .constant(description),
+                        links: .constant(item.links),
+                        isEditable: false,
+                        isSingleLine: false,
+                        font: .systemFont(ofSize: Theme.Font.description),
+                        textColor: NSColor.labelColor.withAlphaComponent(Theme.Opacity.descriptionText),
+                        isFocused: .constant(false),
+                        height: .constant(18)
+                    )
+                    .frame(minHeight: 18)
+                } else {
+                    Text(description)
+                        .font(.system(size: Theme.Font.description))
+                        .foregroundStyle(.primary.opacity(Theme.Opacity.descriptionText))
+                        .lineLimit(isExpanded ? nil : 2)
+                }
             }
 
-            if !item.links.isEmpty {
+            // Show link pills in read mode only for items without markers (legacy items)
+            if !isEditing && !item.links.isEmpty && !titleHasMarkers && !descriptionHasMarkers {
                 FlowLayout(spacing: Theme.Size.linkPillSpacing) {
                     ForEach(item.links) { link in
                         LinkPillView(link: link)
@@ -368,30 +417,45 @@ struct TodoRowView: View {
     }
 
     private func startEditing() {
-        isEditing = true
         editText = item.title
         editDescription = item.description ?? ""
+        editLinks = item.links
+        isEditing = true
         onEditingChanged?(true)
-        if !isExpanded && hasExpandedContent {
+        if !isExpanded && (hasExpandedContent || true) {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 onExpand()
             }
         }
-        focus.wrappedValue = .editing(item.id)
+        // Focus the title PillTextView
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            NSApp.sendAction(#selector(NSResponder.selectAll(_:)), to: nil, from: nil)
+            titleFocused = true
         }
     }
 
     private func commitEdit() {
-        store.updateTitleAndDescription(id: item.id, newTitle: editText, newDescription: editDescription.isEmpty ? nil : editDescription)
+        let trimmedTitle = editText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else {
+            cancelEdit()
+            return
+        }
+        store.updateTitleDescriptionAndLinks(
+            id: item.id,
+            title: editText,
+            description: editDescription.isEmpty ? nil : editDescription,
+            links: editLinks
+        )
         isEditing = false
+        titleFocused = false
+        descriptionFocused = false
         onEditingChanged?(false)
         focus.wrappedValue = .task(item.id)
     }
 
     private func cancelEdit() {
         isEditing = false
+        titleFocused = false
+        descriptionFocused = false
         onEditingChanged?(false)
         focus.wrappedValue = .task(item.id)
     }
