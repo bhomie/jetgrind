@@ -1,20 +1,11 @@
 import SwiftUI
 
-struct TravelingTask: Identifiable {
-    let id: UUID
-    let title: String
-    var startFrame: CGRect
-    var progress: CGFloat = 0
-}
-
 struct TodoListView: View {
     @Bindable var store: TodoStore
     @FocusState private var focus: TodoFocus?
     @State private var showEmptyState = false
     @State private var injectedText: String = ""
     @State private var showCompletedSheet = false
-    @State private var pillFrame: CGRect = .zero
-    @State private var travelingTasks: [TravelingTask] = []
     @State private var taskToAbsorb: UUID?
     @State private var expandedTaskId: UUID?
     @State private var editingTaskId: UUID?
@@ -93,12 +84,6 @@ struct TodoListView: View {
             }
         }
         .frame(width: 320, height: 400)
-        .onPreferenceChange(CompletedPillAnchorKey.self) { frame in
-            DispatchQueue.main.async {
-                pillFrame = frame
-            }
-        }
-        .overlay { travelingTasksOverlay }
         .overlay { completedDimmerOverlay }
         .overlay { completedSheetContent }
         .onKeyPress { keyPress in
@@ -149,6 +134,14 @@ struct TodoListView: View {
         .onAppear {
             showEmptyState = store.items.isEmpty
         }
+        .onChange(of: completedItems.count) { oldCount, newCount in
+            guard newCount > oldCount else { return }
+            taskToAbsorb = UUID()
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(300))
+                taskToAbsorb = nil
+            }
+        }
     }
 
     @ViewBuilder
@@ -178,9 +171,6 @@ struct TodoListView: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     store.delete(id: item.id)
                 }
-            },
-            onStartTravel: { frame in
-                startTravelAnimation(for: item, from: frame)
             },
             isExpanded: expandedBinding,
             isEditBlurred: editingTaskId != nil && editingTaskId != item.id,
@@ -223,45 +213,6 @@ struct TodoListView: View {
     }
 
     @ViewBuilder
-    private var travelingTasksOverlay: some View {
-        GeometryReader { geometry in
-            ForEach(travelingTasks) { task in
-                travelingTaskView(task: task, geometry: geometry)
-            }
-        }
-        .allowsHitTesting(false)
-    }
-
-    @ViewBuilder
-    private func travelingTaskView(task: TravelingTask, geometry: GeometryProxy) -> some View {
-        let localOrigin = geometry.frame(in: .global).origin
-        let targetX = pillFrame.midX - localOrigin.x
-        let targetY = pillFrame.midY - localOrigin.y
-        let startX = task.startFrame.midX - localOrigin.x
-        let startY = task.startFrame.midY - localOrigin.y
-        let currentX = startX + (targetX - startX) * task.progress
-        let currentY = startY + (targetY - startY) * task.progress
-        let scale = 1.0 - (0.7 * task.progress)
-        let opacity = task.progress < 0.9 ? 1.0 : (1.0 - (task.progress - 0.9) * 10.0)
-        
-        ZStack {
-            // Particle trail
-            TravelParticleView(
-                position: CGPoint(x: currentX, y: currentY),
-                isActive: task.progress > 0 && task.progress < 1.0
-            )
-            
-            // Traveling checkmark
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: Theme.Font.icon))
-                .foregroundStyle(.primary)
-                .scaleEffect(scale)
-                .position(x: currentX, y: currentY)
-                .opacity(opacity)
-        }
-    }
-
-    @ViewBuilder
     private var completedDimmerOverlay: some View {
         if showCompletedSheet {
             Color.black.opacity(Theme.Opacity.overlayDim)
@@ -280,29 +231,6 @@ struct TodoListView: View {
         if showCompletedSheet {
             CompletedSheetView(store: store, isPresented: $showCompletedSheet, focus: $focus)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
-        }
-    }
-
-    private func startTravelAnimation(for item: TodoItem, from frame: CGRect) {
-        let task = TravelingTask(id: item.id, title: item.title, startFrame: frame)
-        travelingTasks.append(task)
-        
-        // Animate the travel
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
-            if let index = travelingTasks.firstIndex(where: { $0.id == item.id }) {
-                travelingTasks[index].progress = 1.0
-            }
-        }
-        
-        // Remove after animation completes and trigger pill bounce
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(500))
-            taskToAbsorb = item.id
-            travelingTasks.removeAll { $0.id == item.id }
-            
-            // Reset absorption trigger
-            try? await Task.sleep(for: .milliseconds(100))
-            taskToAbsorb = nil
         }
     }
 }

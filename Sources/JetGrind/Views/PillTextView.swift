@@ -96,7 +96,7 @@ final class PillNSTextView: NSTextView {
     // MARK: - Cursor position detection
 
     private func isCursorOnFirstLine() -> Bool {
-        guard let lm = layoutManager, let tc = textContainer else { return true }
+        guard let lm = layoutManager, textContainer != nil else { return true }
         let insertionPoint = selectedRange().location
         var firstLineGlyphRange = NSRange()
         lm.lineFragmentRect(forGlyphAt: 0, effectiveRange: &firstLineGlyphRange)
@@ -105,7 +105,7 @@ final class PillNSTextView: NSTextView {
     }
 
     private func isCursorOnLastLine() -> Bool {
-        guard let lm = layoutManager, let tc = textContainer, let ts = textStorage else { return true }
+        guard let lm = layoutManager, textContainer != nil, let ts = textStorage else { return true }
         let insertionPoint = selectedRange().location
         let lastGlyph = max(lm.numberOfGlyphs - 1, 0)
         var lastLineGlyphRange = NSRange()
@@ -335,8 +335,6 @@ struct PillTextView: NSViewRepresentable {
 
             let nsRange = NSRange(wordRange, in: storage.string)
             let link = LinkItem(url: match.url)
-            let font = textView.font ?? NSFont.systemFont(ofSize: NSFont.systemFontSize)
-            let color = textView.textColor ?? NSColor.textColor
 
             let attachment = NSTextAttachment()
             attachment.attachmentCell = PillAttachmentCell(link: link)

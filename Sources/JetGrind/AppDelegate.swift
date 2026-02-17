@@ -80,7 +80,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateStatusItemBadge() {
         let incompleteCount = store.items.filter { !$0.isCompleted }.count
-        statusItem.button?.title = incompleteCount > 0 ? " \(incompleteCount)" : ""
+        let text = " \(max(incompleteCount, 1))"
+        let color: NSColor = incompleteCount > 0 ? .labelColor : .clear
+        let attrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: color,
+            .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        ]
+        statusItem.button?.attributedTitle = NSAttributedString(string: text, attributes: attrs)
     }
 
     @objc private func handleShowPopoverAndFocus() {

@@ -5,10 +5,10 @@ final class PillAttachmentCell: NSTextAttachmentCell {
     let link: LinkItem
 
     nonisolated(unsafe) private static let pillFont = NSFont.systemFont(ofSize: Theme.Size.inlinePillFontSize, weight: .medium)
-    nonisolated(unsafe) private static let iconSize = Theme.Size.inlinePillIconSize
-    nonisolated(unsafe) private static let pillHeight = Theme.Size.inlinePillHeight
-    nonisolated(unsafe) private static let paddingH = Theme.Size.inlinePillPaddingH
-    nonisolated(unsafe) private static let internalSpacing: CGFloat = 3
+    nonisolated private static let iconSize = Theme.Size.inlinePillIconSize
+    nonisolated private static let pillHeight = Theme.Size.inlinePillHeight
+    nonisolated private static let paddingH = Theme.Size.inlinePillPaddingH
+    nonisolated private static let internalSpacing: CGFloat = 3
 
     init(link: LinkItem) {
         self.link = link

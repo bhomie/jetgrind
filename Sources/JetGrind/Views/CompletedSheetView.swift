@@ -49,7 +49,7 @@ struct CompletedSheetView: View {
                 }
                 .frame(maxHeight: 200)
             }
-            .background(.ultraThinMaterial)
+            .background(.white)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal, 8)
             .padding(.bottom, 8)

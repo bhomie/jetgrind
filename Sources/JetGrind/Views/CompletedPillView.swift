@@ -33,7 +33,6 @@ struct CompletedPillView: View {
                 )
         )
         .scaleEffect(bounceScale)
-        .completedPillAnchor()
         .focusable()
         .focused(focus, equals: .completedPill)
         .focusEffectDisabled()

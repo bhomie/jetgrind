@@ -3,7 +3,7 @@ import Foundation
 
 @MainActor
 enum TextPillConverter {
-    nonisolated(unsafe) private static let markerPattern = try! NSRegularExpression(
+    private static let markerPattern = try! NSRegularExpression(
         pattern: #"\{\{link:([A-Fa-f0-9\-]+)\}\}"#
     )
 

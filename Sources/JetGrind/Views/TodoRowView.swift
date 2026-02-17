@@ -8,7 +8,6 @@ struct TodoRowView: View {
     let nextTaskId: UUID?
     let hasCompletedItems: Bool
     let onDelete: () -> Void
-    var onStartTravel: ((CGRect) -> Void)?
     @Binding var isExpanded: Bool
     let isEditBlurred: Bool
     let onExpand: () -> Void
@@ -16,9 +15,7 @@ struct TodoRowView: View {
 
     @State private var isHovered = false
     @State private var showTimestamp = false
-    @State private var showConfetti = false
     @State private var isCompleting = false
-    @State private var checkboxFrame: CGRect = .zero
     @State private var isEditing = false
     @State private var editText = ""
     @State private var editDescription = ""
@@ -96,17 +93,11 @@ struct TodoRowView: View {
             Rectangle()
                 .fill(Color.primary.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
         }
-        .onPreferenceChange(CheckboxFrameKey.self) { frame in
-            DispatchQueue.main.async {
-                checkboxFrame = frame
-            }
-        }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
         .blur(radius: isEditBlurred ? Theme.Size.editBlurRadius : 0)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditBlurred)
-        .confettiOverlay(isActive: showConfetti)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
         .onHover { hovering in
@@ -198,12 +189,14 @@ struct TodoRowView: View {
         }
         .onKeyPress(keys: [.delete, .deleteForward]) { _ in
             guard !isEditing, !isInActionMode else { return .ignored }
+            moveFocusToNeighbor()
             onDelete()
             return .handled
         }
         .onKeyPress { keyPress in
             guard !isEditing, !isInActionMode else { return .ignored }
             if keyPress.key.character == "\u{7F}" || keyPress.key.character == "\u{08}" {
+                moveFocusToNeighbor()
                 onDelete()
                 return .handled
             }
@@ -218,12 +211,6 @@ struct TodoRowView: View {
             .scaleEffect(item.isCompleted || isCompleting ? 1 : 0.9)
             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: item.isCompleted)
             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isCompleting)
-            .background(GeometryReader { geometry in
-                Color.clear.preference(
-                    key: CheckboxFrameKey.self,
-                    value: geometry.frame(in: .global)
-                )
-            })
             .onTapGesture {
                 handleToggle()
             }
@@ -346,8 +333,9 @@ struct TodoRowView: View {
                     startEditing()
                     return .handled
                 }
-            unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), action: onDelete)
+            unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), action: { moveFocusToNeighbor(); onDelete() })
                 .onKeyPress(.return) {
+                    moveFocusToNeighbor()
                     onDelete()
                     return .handled
                 }
@@ -461,34 +449,32 @@ struct TodoRowView: View {
         focus.wrappedValue = .task(item.id)
     }
 
-    private func handleToggle() {
-        if !item.isCompleted {
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(100))
-            showConfetti = true
-                isCompleting = true
-                try? await Task.sleep(for: .milliseconds(400))
-                showConfetti = false
-
-                onStartTravel?(checkboxFrame)
-
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    item.isCompleted.toggle()
-                }
-                try? await Task.sleep(for: .milliseconds(200))
-                isCompleting = false
-            }
+    private func moveFocusToNeighbor() {
+        if let nextId = nextTaskId {
+            focus.wrappedValue = .task(nextId)
+        } else if let prevId = previousTaskId {
+            focus.wrappedValue = .task(prevId)
         } else {
+            focus.wrappedValue = .input
+        }
+    }
+
+    private func handleToggle() {
+        guard !item.isCompleted else {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 item.isCompleted.toggle()
             }
+            return
         }
-    }
-}
-
-private struct CheckboxFrameKey: PreferenceKey {
-    nonisolated(unsafe) static var defaultValue: CGRect = .zero
-    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
-        value = nextValue()
+        Task { @MainActor in
+            isCompleting = true
+            try? await Task.sleep(for: .milliseconds(200))
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                item.isCompleted.toggle()
+            }
+            moveFocusToNeighbor()
+            try? await Task.sleep(for: .milliseconds(200))
+            isCompleting = false
+        }
     }
 }
