@@ -16,6 +16,7 @@ struct TodoRowView: View {
     @State private var isHovered = false
     @State private var showTimestamp = false
     @State private var isCompleting = false
+    @State private var isAppearing = true
     @State private var isEditing = false
     @State private var editText = ""
     @State private var editDescription = ""
@@ -73,25 +74,26 @@ struct TodoRowView: View {
                 }
                 .padding(.leading, 8)
                 Spacer()
-                if !isEditing {
-                    timestampView
-                }
                 actionArea
             }
+
+            // Timestamp pill below title
+            timestampView
+                .padding(.leading, 24) // checkbox width + title padding
 
             // Expanded content: description + inline pills
             if isExpanded || isEditing {
                 expandedContent
-                    .padding(.leading, 24 + 8) // checkbox width + leading padding
-                    .padding(.top, 4)
+                    .padding(.leading, 24) // checkbox width + leading padding
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(.horizontal, 8)
-        .padding(.bottom, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
         .background {
             Rectangle()
-                .fill(Color.primary.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
+                .fill(Color.accentColor.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
@@ -100,6 +102,13 @@ struct TodoRowView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditBlurred)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
+        .onAppear {
+            DispatchQueue.main.async {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    isAppearing = false
+                }
+            }
+        }
         .onHover { hovering in
             isHovered = hovering
         }
@@ -229,12 +238,12 @@ struct TodoRowView: View {
                 isFocused: .constant(false),
                 height: .constant(20)
             )
-            .frame(height: 20)
             .strikethrough(item.isCompleted)
             .contentTransition(.opacity)
-            .blur(radius: isCompleting ? 8 : 0)
-            .opacity(isCompleting ? 0 : 1)
+            .blur(radius: (isCompleting || isAppearing) ? 8 : 0)
+            .opacity((isCompleting || isAppearing) ? 0 : 1)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isAppearing)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         } else {
             Text(item.title)
@@ -243,9 +252,10 @@ struct TodoRowView: View {
                 .foregroundStyle(item.isCompleted ? .secondary : .primary)
                 .lineLimit(1)
                 .contentTransition(.opacity)
-                .blur(radius: isCompleting ? 8 : 0)
-                .opacity(isCompleting ? 0 : 1)
+                .blur(radius: (isCompleting || isAppearing) ? 8 : 0)
+                .opacity((isCompleting || isAppearing) ? 0 : 1)
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isAppearing)
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         }
     }
@@ -393,11 +403,10 @@ struct TodoRowView: View {
                 Capsule()
                     .fill(Color.primary.opacity(Theme.Opacity.pillBackground))
             }
-            .opacity(showTimestamp && !isCompleting && !isInActionMode ? 1 : 0)
-            .blur(radius: isCompleting ? 8 : (showTimestamp && !isInActionMode ? 0 : 8))
+            .opacity(showTimestamp && !isCompleting ? 1 : 0)
+            .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
             .animation(.spring(response: 0.25, dampingFraction: 0.85), value: isCompleting)
             .animation(.spring(response: 0.3, dampingFraction: 0.85), value: showTimestamp)
-            .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isInActionMode)
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     showTimestamp = true

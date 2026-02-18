@@ -26,3 +26,7 @@ Data flows through a single `TodoStore` instance passed from app to views via `@
 ## Communication
 
 Keep summaries very succinct.
+
+## Planning
+
+When planning implementation, always ask follow-up questions to understand intent and bring clarity to the vision before proposing an approach. Don't assume—ask.

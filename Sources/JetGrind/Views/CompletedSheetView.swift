@@ -47,6 +47,7 @@ struct CompletedSheetView: View {
                         }
                     }
                 }
+                .scrollIndicators(.hidden)
                 .frame(maxHeight: 200)
             }
             .background(.white)

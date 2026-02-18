@@ -35,7 +35,7 @@ struct TodoListView: View {
                     emptyStateView
                 } else if incompleteItems.isEmpty {
                     // Only completed items exist - show message
-                    VStack(spacing: 12) {
+                    VStack() {
                         Image(systemName: "party.popper")
                             .font(.system(size: Theme.Font.emptyStateIcon))
                             .foregroundStyle(.tertiary)
@@ -46,15 +46,27 @@ struct TodoListView: View {
                     .frame(maxHeight: .infinity)
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 0) {
+                        LazyVStack() {
                             ForEach(Array(incompleteItems.enumerated()), id: \.element.id) { index, item in
                                 let prevId = index > 0 ? incompleteItems[index - 1].id : nil
                                 let nextId = index < incompleteItems.count - 1 ? incompleteItems[index + 1].id : nil
-                                
+
                                 todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId)
                             }
                         }
                     }
+                    .scrollIndicators(.hidden)
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .black, location: 0),
+                                .init(color: .black, location: 0.7),
+                                .init(color: .clear, location: 1.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
                 }
 
                 Spacer(minLength: 0)
