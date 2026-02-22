@@ -10,8 +10,8 @@ extension Notification.Name {
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
-    private var hotKey: HotKey!
-    private let store = TodoStore()
+    let settingsStore = SettingsStore()
+    let store = TodoStore()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let mainBundle = CFBundleGetMainBundle()
@@ -36,8 +36,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "checkmark.circle", accessibilityDescription: "JetGrind")
             button.imagePosition = .imageLeading
-            button.action = #selector(togglePopover)
+            button.action = #selector(statusItemClicked)
             button.target = self
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
     }
 
@@ -48,13 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupHotKey() {
-        hotKey = HotKey(key: .t, modifiers: [.command, .shift])
-        hotKey.keyDownHandler = {
-            Task { @MainActor in
-                NotificationCenter.default.post(name: .showPopoverAndFocus, object: nil)
-            }
-        }
-
+        // HotKey registration is handled by SettingsStore
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleShowPopoverAndFocus),
@@ -93,12 +88,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         showPopoverAndFocus()
     }
 
-    @objc private func togglePopover() {
+    @objc private func statusItemClicked() {
+        guard let event = NSApp.currentEvent else { return }
+        if event.type == .rightMouseUp {
+            showContextMenu()
+        } else {
+            togglePopover()
+        }
+    }
+
+    private func togglePopover() {
         if popover.isShown {
             popover.performClose(nil)
         } else {
             showPopover()
         }
+    }
+
+    private func showContextMenu() {
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ","))
+        menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "Quit JetGrind", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        statusItem.menu = menu
+        statusItem.button?.performClick(nil)
+        // Clear the menu so left-click goes back to action-based handling
+        statusItem.menu = nil
+    }
+
+    @objc private func openSettings() {
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func showPopover() {

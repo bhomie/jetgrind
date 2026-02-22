@@ -45,6 +45,11 @@ final class TodoStore {
         save()
     }
 
+    func clearCompleted() {
+        items.removeAll { $0.isCompleted }
+        save()
+    }
+
     func delete(id: UUID) {
         items.removeAll { $0.id == id }
         save()
