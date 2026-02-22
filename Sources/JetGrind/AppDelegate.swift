@@ -10,6 +10,7 @@ extension Notification.Name {
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
+    private var settingsWindow: NSWindow?
     let settingsStore = SettingsStore()
     let store = TodoStore()
 
@@ -117,8 +118,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openSettings() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         NSApp.activate(ignoringOtherApps: true)
+        if let window = settingsWindow, window.isVisible {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        let settingsView = SettingsView(settingsStore: settingsStore, todoStore: store)
+        let hostingController = NSHostingController(rootView: settingsView)
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "JetGrind Settings"
+        window.styleMask = [.titled, .closable]
+        window.setContentSize(hostingController.view.fittingSize)
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        settingsWindow = window
     }
 
     private func showPopover() {
