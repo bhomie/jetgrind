@@ -42,7 +42,7 @@ enum Theme {
         /// Time pill / capsule background
         static let pillBackground: Double = 0.08
         /// Row highlight, focused row, sheet row background
-        static let rowHighlight: Double = 0.05
+        static let rowHighlight: Double = 0.12
         /// Visible action button (e.g. delete when active)
         static let buttonActive: Double = 0.8
         /// Add-todo / input container background

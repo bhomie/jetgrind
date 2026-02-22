@@ -6,8 +6,8 @@ struct TodoRowView: View {
     var focus: FocusState<TodoFocus?>.Binding
     let previousTaskId: UUID?
     let nextTaskId: UUID?
-    let hasCompletedItems: Bool
     let onDelete: () -> Void
+    let onOpenCompleted: (() -> Void)?
     @Binding var isExpanded: Bool
     let isEditBlurred: Bool
     let onExpand: () -> Void
@@ -64,7 +64,6 @@ struct TodoRowView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Title row
             HStack(alignment: .center, spacing: 0) {
-                checkboxView
                 ZStack(alignment: .leading) {
                     titleView
                         .opacity(isEditing ? 0 : 1)
@@ -72,25 +71,25 @@ struct TodoRowView: View {
                         .opacity(isEditing ? 1 : 0)
                         .allowsHitTesting(isEditing)
                 }
-                .padding(.leading, 8)
+                .padding(.leading, 12)
                 Spacer()
                 actionArea
             }
 
             // Timestamp pill below title
             timestampView
-                .padding(.leading, 24) // checkbox width + title padding
+                .padding(.leading, 12)
 
             // Expanded content: description + inline pills
             if isExpanded || isEditing {
                 expandedContent
-                    .padding(.leading, 24) // checkbox width + leading padding
+                    .padding(.leading, 12)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(.horizontal, 8)
         .padding(.top, 8)
-        .padding(.bottom, 16)
+        .padding(.bottom, 8)
         .background {
             Rectangle()
                 .fill(Color.accentColor.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
@@ -151,16 +150,18 @@ struct TodoRowView: View {
             }
             if let nextId = nextTaskId {
                 focus.wrappedValue = .task(nextId)
-            } else if hasCompletedItems {
-                focus.wrappedValue = .completedPill
             }
             return .handled
         }
         .onKeyPress(.rightArrow) {
             guard !isEditing, !item.isCompleted else { return .ignored }
             if isInActionMode {
-                if let idx = focus.wrappedValue?.actionIndex, idx < 1 {
-                    focus.wrappedValue = TodoFocus.action(index: idx + 1, taskId: item.id)
+                if let idx = focus.wrappedValue?.actionIndex {
+                    if idx < 1 {
+                        focus.wrappedValue = TodoFocus.action(index: idx + 1, taskId: item.id)
+                    } else if let openCompleted = onOpenCompleted {
+                        openCompleted()
+                    }
                 }
                 return .handled
             }
@@ -211,18 +212,6 @@ struct TodoRowView: View {
             }
             return .ignored
         }
-    }
-
-    private var checkboxView: some View {
-        Image(systemName: (item.isCompleted || isCompleting) ? "checkmark.circle.fill" : "circle")
-            .font(.system(size: Theme.Font.icon))
-            .foregroundStyle((item.isCompleted || isCompleting) ? Color.primary : .secondary)
-            .scaleEffect(item.isCompleted || isCompleting ? 1 : 0.9)
-            .animation(.spring(response: 0.4, dampingFraction: 0.6), value: item.isCompleted)
-            .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isCompleting)
-            .onTapGesture {
-                handleToggle()
-            }
     }
 
     @ViewBuilder
