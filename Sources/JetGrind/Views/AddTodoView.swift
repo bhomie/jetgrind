@@ -91,9 +91,9 @@ struct AddTodoView: View {
                     .frame(width: Theme.Font.iconLarge, height: Theme.Font.iconLarge)
             }
             .buttonStyle(.plain)
-            .padding(.leading, showCompletedView ? 0 : 8)
             .opacity(showCompletedView ? 1 : (hasValidText ? 1 : 0))
             .scaleEffect(showCompletedView ? 1 : (hasValidText ? 1 : 0.2))
+            .padding(.leading, showCompletedView ? 0 : 8)
             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: hasValidText)
         }
         .padding(.vertical, 12)

@@ -34,6 +34,19 @@ struct CompletedTabView: View {
         )
     }
 
+    private func deleteTask(item: TodoItem, nextId: UUID?, previousId: UUID?) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            store.delete(id: item.id)
+        }
+        if let nextId = nextId {
+            focus.wrappedValue = .completedTask(nextId)
+        } else if let prevId = previousId {
+            focus.wrappedValue = .completedTask(prevId)
+        } else {
+            onDismiss()
+        }
+    }
+
     private func uncompleteTask(item: TodoItem, nextId: UUID?, previousId: UUID?) {
         guard let idx = store.items.firstIndex(where: { $0.id == item.id }) else { return }
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
@@ -68,7 +81,7 @@ struct CompletedTabView: View {
 
             Text(item.createdAt.relativeFormat)
                 .font(.system(size: Theme.Font.body))
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.secondary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
                 .background(Capsule().fill(Color.primary.opacity(Theme.Opacity.rowHighlight)))
@@ -104,6 +117,17 @@ struct CompletedTabView: View {
         .onKeyPress(.return) {
             uncompleteTask(item: item, nextId: nextId, previousId: previousId)
             return .handled
+        }
+        .onKeyPress(keys: [.delete, .deleteForward]) { _ in
+            deleteTask(item: item, nextId: nextId, previousId: previousId)
+            return .handled
+        }
+        .onKeyPress { keyPress in
+            if keyPress.key.character == "\u{7F}" {
+                deleteTask(item: item, nextId: nextId, previousId: previousId)
+                return .handled
+            }
+            return .ignored
         }
     }
 }
