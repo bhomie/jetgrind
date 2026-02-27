@@ -4,12 +4,14 @@ struct TodoListView: View {
     @Bindable var store: TodoStore
     @FocusState private var focus: TodoFocus?
     @State private var showEmptyState = false
+    @State private var showAllDoneState = false
     @State private var injectedText: String = ""
     @State private var showCompletedView = false
     @State private var completedViewEntryTaskId: UUID?
     @State private var taskToAbsorb: UUID?
     @State private var expandedTaskId: UUID?
     @State private var editingTaskId: UUID?
+    @State private var lastCompletedIndex: Int?
 
     private var incompleteItems: [TodoItem] {
         store.items.filter { !$0.isCompleted }
@@ -44,15 +46,13 @@ struct TodoListView: View {
                         if incompleteItems.isEmpty && completedItems.isEmpty {
                             emptyStateView
                         } else if incompleteItems.isEmpty {
-                            VStack() {
-                                Image(systemName: "party.popper")
-                                    .font(.system(size: Theme.Font.emptyStateIcon))
-                                    .foregroundStyle(.tertiary)
-                                Text("All done!")
-                                    .font(.headline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .frame(maxHeight: .infinity)
+                            allDoneStateView
+                                .onAppear {
+                                    showAllDoneState = true
+                                }
+                                .onDisappear {
+                                    showAllDoneState = false
+                                }
                         } else {
                             ScrollView {
                                 LazyVStack() {
@@ -60,7 +60,7 @@ struct TodoListView: View {
                                         let prevId = index > 0 ? incompleteItems[index - 1].id : nil
                                         let nextId = index < incompleteItems.count - 1 ? incompleteItems[index + 1].id : nil
 
-                                        todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId)
+                                        todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId, rowIndex: index)
                                     }
                                 }
                             }
@@ -149,15 +149,18 @@ struct TodoListView: View {
         .onChange(of: completedItems.count) { oldCount, newCount in
             guard newCount > oldCount else { return }
             taskToAbsorb = UUID()
+            // Set cascade index to 0 (items shift up from the top)
+            lastCompletedIndex = 0
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(300))
                 taskToAbsorb = nil
+                lastCompletedIndex = nil
             }
         }
     }
 
     @ViewBuilder
-    private func todoRow(item: TodoItem, previousTaskId: UUID?, nextTaskId: UUID?) -> some View {
+    private func todoRow(item: TodoItem, previousTaskId: UUID?, nextTaskId: UUID?, rowIndex: Int = 0) -> some View {
         let itemBinding = Binding(
             get: { store.items.first { $0.id == item.id } ?? item },
             set: { newValue in
@@ -195,33 +198,68 @@ struct TodoListView: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     editingTaskId = isEditing ? item.id : nil
                 }
-            }
+            },
+            rowIndex: rowIndex,
+            cascadeDelay: {
+                guard let ci = lastCompletedIndex else { return 0 }
+                return max(0, Double(rowIndex - ci)) * 0.03
+            }()
         )
-        .transition(.opacity)
+        .transition(.move(edge: .top).combined(with: .scale(scale: 0.95)).combined(with: .opacity))
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "checkmark.circle")
-                .font(.system(size: Theme.Font.emptyStateIcon))
-                .foregroundStyle(.tertiary)
-                .opacity(showEmptyState ? 1.0 : 0)
-                .blur(radius: showEmptyState ? 0 : 8)
+        ZStack {
+            LinearGradient(
+                colors: [Theme.Pastel.mint.opacity(0.08), Theme.Pastel.butter.opacity(0.06), Color.clear],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
-            Text("No Tasks")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .opacity(showEmptyState ? 1.0 : 0)
-                .blur(radius: showEmptyState ? 0 : 4)
+            VStack(spacing: 12) {
+                Text("🌱")
+                    .font(.system(size: Theme.Font.emptyStateIcon))
+                    .offset(y: showEmptyState ? -4 : 4)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: showEmptyState)
 
-            Text("Add a task to get started")
-                .font(.subheadline)
-                .foregroundStyle(.tertiary)
-                .opacity(showEmptyState ? 1.0 : 0)
-                .blur(radius: showEmptyState ? 0 : 4)
+                Text("Plant your first task")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .opacity(showEmptyState ? 1.0 : 0)
+                    .blur(radius: showEmptyState ? 0 : 4)
+
+                Text("Type something above to begin")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+                    .opacity(showEmptyState ? 1.0 : 0)
+                    .blur(radius: showEmptyState ? 0 : 4)
+            }
         }
         .frame(maxHeight: .infinity)
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: showEmptyState)
+    }
+
+    private var allDoneStateView: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Theme.Pastel.lavender.opacity(0.08), Theme.Pastel.rose.opacity(0.06), Color.clear],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(spacing: 12) {
+                Text("🎉")
+                    .font(.system(size: Theme.Font.emptyStateIcon))
+                    .rotationEffect(.degrees(showAllDoneState ? 10 : -10))
+                    .scaleEffect(showAllDoneState ? 1.1 : 0.95)
+                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: showAllDoneState)
+
+                Text("Crushed it!")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxHeight: .infinity)
     }
 
     private func openCompletedView(fromTaskId: UUID? = nil) {

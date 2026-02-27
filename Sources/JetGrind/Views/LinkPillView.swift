@@ -3,6 +3,7 @@ import AppKit
 
 struct LinkPillView: View {
     let link: LinkItem
+    var tintColor: Color = Theme.Color.linkPillText
     @State private var isHovered = false
 
     var body: some View {
@@ -13,14 +14,14 @@ struct LinkPillView: View {
                 faviconImage
                 Text(link.displayTitle)
                     .font(.system(size: Theme.Font.linkPillLabel, weight: .medium))
-                    .foregroundStyle(Theme.Color.linkPillText)
+                    .foregroundStyle(tintColor)
                     .lineLimit(1)
             }
             .padding(.horizontal, Theme.Size.linkPillPaddingH)
             .frame(height: Theme.Size.linkPillHeight)
             .background {
                 Capsule()
-                    .fill(Theme.Color.linkPillText.opacity(isHovered ? Theme.Opacity.linkPillHover : Theme.Opacity.linkPillBackground))
+                    .fill(tintColor.opacity(isHovered ? Theme.Opacity.linkPillHover : Theme.Opacity.linkPillBackground))
             }
         }
         .buttonStyle(.plain)

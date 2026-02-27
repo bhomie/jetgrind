@@ -102,7 +102,7 @@ struct AddTodoView: View {
         .frame(height: collapsedSize)
         .background(
             RoundedRectangle(cornerRadius: containerCornerRadius)
-                .fill(.primary.opacity(Theme.Opacity.inputBackground))
+                .fill(Theme.Color.inputWarm.opacity(Theme.Opacity.inputWarm))
         )
     }
 
@@ -138,7 +138,7 @@ struct AddTodoView: View {
         .frame(height: collapsedSize)
         .background(
             RoundedRectangle(cornerRadius: containerCornerRadius)
-                .fill(.primary.opacity(Theme.Opacity.inputBackground))
+                .fill(Theme.Color.inputWarm.opacity(Theme.Opacity.inputWarm))
         )
     }
 

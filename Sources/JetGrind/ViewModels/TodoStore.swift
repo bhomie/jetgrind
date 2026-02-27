@@ -17,7 +17,7 @@ final class TodoStore {
         guard !trimmed.isEmpty else { return }
 
         let result = TodoTextSplitter.split(trimmed)
-        let item = TodoItem(title: result.title, description: result.description, links: result.links)
+        let item = TodoItem(title: result.title, description: result.description, links: result.links, emoji: EmojiPool.random())
 
         // If input was a single URL, fetch page title async
         let isSingleURL = URLDetector.isSingleURL(trimmed)
@@ -47,6 +47,13 @@ final class TodoStore {
 
     func clearCompleted() {
         items.removeAll { $0.isCompleted }
+        save()
+    }
+
+    func randomizeEmoji(id: UUID) {
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        let current = items[index].emoji ?? ""
+        items[index].emoji = EmojiPool.randomExcluding(current)
         save()
     }
 

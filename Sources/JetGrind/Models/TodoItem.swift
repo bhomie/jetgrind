@@ -7,14 +7,16 @@ struct TodoItem: Identifiable, Codable {
     var links: [LinkItem]
     var isCompleted: Bool
     let createdAt: Date
+    var emoji: String?
 
-    init(id: UUID = UUID(), title: String, description: String? = nil, links: [LinkItem] = [], isCompleted: Bool = false, createdAt: Date = Date()) {
+    init(id: UUID = UUID(), title: String, description: String? = nil, links: [LinkItem] = [], isCompleted: Bool = false, createdAt: Date = Date(), emoji: String? = nil) {
         self.id = id
         self.title = title
         self.description = description
         self.links = links
         self.isCompleted = isCompleted
         self.createdAt = createdAt
+        self.emoji = emoji
     }
 
     init(from decoder: Decoder) throws {
@@ -25,5 +27,6 @@ struct TodoItem: Identifiable, Codable {
         links = try container.decodeIfPresent([LinkItem].self, forKey: .links) ?? []
         isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
+        emoji = try container.decodeIfPresent(String.self, forKey: .emoji)
     }
 }

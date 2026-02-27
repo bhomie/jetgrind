@@ -16,7 +16,7 @@ struct CompletedTabView: View {
                 ForEach(Array(completedItems.enumerated()), id: \.element.id) { index, item in
                     let prevId = index > 0 ? completedItems[index - 1].id : nil
                     let nextId = index < completedItems.count - 1 ? completedItems[index + 1].id : nil
-                    completedRow(item: item, previousId: prevId, nextId: nextId, isFirst: index == 0)
+                    completedRow(item: item, previousId: prevId, nextId: nextId, isFirst: index == 0, rowIndex: index)
                 }
             }
         }
@@ -63,13 +63,19 @@ struct CompletedTabView: View {
     }
 
     @ViewBuilder
-    private func completedRow(item: TodoItem, previousId: UUID?, nextId: UUID?, isFirst: Bool) -> some View {
+    private func completedRow(item: TodoItem, previousId: UUID?, nextId: UUID?, isFirst: Bool, rowIndex: Int = 0) -> some View {
         let isFocused = focus.wrappedValue == .completedTask(item.id)
+        let pastelColor = Theme.Pastel.color(for: rowIndex)
 
         HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: Theme.Font.icon))
-                .foregroundStyle(Theme.Color.completedCheckmark)
+            if let emoji = item.emoji {
+                Text(emoji)
+                    .font(.system(size: 16))
+            } else {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: Theme.Font.icon))
+                    .foregroundStyle(Theme.Color.completedCheckmark)
+            }
 
             Text(item.title)
                 .font(.system(size: Theme.Font.bodyMedium, weight: .medium))
@@ -84,11 +90,18 @@ struct CompletedTabView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
-                .background(Capsule().fill(Color.primary.opacity(Theme.Opacity.rowHighlight)))
+                .background(Capsule().fill(pastelColor.opacity(Theme.Opacity.pillBackground)))
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 16)
-        .background(isFocused ? Color.primary.opacity(Theme.Opacity.rowHighlight) : Color.clear)
+        .background {
+            ZStack {
+                Rectangle().fill(pastelColor.opacity(Theme.Opacity.pastelRowDark))
+                if isFocused {
+                    Rectangle().fill(Color.primary.opacity(Theme.Opacity.rowHighlight))
+                }
+            }
+        }
         .focusable()
         .focused(focus, equals: .completedTask(item.id))
         .focusEffectDisabled()

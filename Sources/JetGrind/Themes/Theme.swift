@@ -1,4 +1,11 @@
 import SwiftUI
+import AppKit
+
+private func adaptiveColor(light: NSColor, dark: NSColor) -> SwiftUI.Color {
+    SwiftUI.Color(nsColor: NSColor(name: nil, dynamicProvider: { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+    }))
+}
 
 enum Theme {
     // MARK: - Font sizes
@@ -63,6 +70,12 @@ enum Theme {
         static let linkPillHover: Double = 0.15
         /// Edit dim on non-editing rows
         static let editDimOpacity: Double = 0.4
+        /// Pastel row tint (dark mode)
+        static let pastelRowDark: Double = 0.08
+        /// Pastel row tint (light mode)
+        static let pastelRowLight: Double = 0.12
+        /// Warm input field tint
+        static let inputWarm: Double = 0.10
     }
 
     // MARK: - Sizes
@@ -89,5 +102,24 @@ enum Theme {
         /// Completed task checkmark (e.g. in sheet)
         static let completedCheckmark = SwiftUI.Color.green
         static let linkPillText = SwiftUI.Color.accentColor
+        /// Warm cream/brown for input field
+        static let inputWarm = adaptiveColor(light: NSColor(red: 0.58, green: 0.44, blue: 0.30, alpha: 1), dark: NSColor(red: 0.76, green: 0.62, blue: 0.48, alpha: 1))
+    }
+
+    // MARK: - Pastel palette
+
+    enum Pastel {
+        static let lavender = adaptiveColor(light: NSColor(red: 0.69, green: 0.61, blue: 0.85, alpha: 1), dark: NSColor(red: 0.58, green: 0.48, blue: 0.78, alpha: 1))
+        static let peach    = adaptiveColor(light: NSColor(red: 0.93, green: 0.60, blue: 0.52, alpha: 1), dark: NSColor(red: 0.84, green: 0.48, blue: 0.40, alpha: 1))
+        static let mint     = adaptiveColor(light: NSColor(red: 0.40, green: 0.78, blue: 0.70, alpha: 1), dark: NSColor(red: 0.30, green: 0.68, blue: 0.60, alpha: 1))
+        static let sky      = adaptiveColor(light: NSColor(red: 0.45, green: 0.65, blue: 0.88, alpha: 1), dark: NSColor(red: 0.35, green: 0.55, blue: 0.80, alpha: 1))
+        static let butter   = adaptiveColor(light: NSColor(red: 0.90, green: 0.78, blue: 0.42, alpha: 1), dark: NSColor(red: 0.82, green: 0.70, blue: 0.34, alpha: 1))
+        static let rose     = adaptiveColor(light: NSColor(red: 0.88, green: 0.50, blue: 0.62, alpha: 1), dark: NSColor(red: 0.80, green: 0.40, blue: 0.52, alpha: 1))
+
+        private static let all: [SwiftUI.Color] = [lavender, peach, mint, sky, butter, rose]
+
+        static func color(for index: Int) -> SwiftUI.Color {
+            all[index % all.count]
+        }
     }
 }

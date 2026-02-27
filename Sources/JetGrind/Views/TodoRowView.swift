@@ -12,7 +12,10 @@ struct TodoRowView: View {
     let isEditBlurred: Bool
     let onExpand: () -> Void
     let onEditingChanged: ((Bool) -> Void)?
+    var rowIndex: Int = 0
+    var cascadeDelay: Double = 0
 
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isHovered = false
     @State private var showTimestamp = false
     @State private var isCompleting = false
@@ -25,6 +28,16 @@ struct TodoRowView: View {
     @State private var descriptionFocused = false
     @State private var titleHeight: CGFloat = 20
     @State private var descriptionHeight: CGFloat = 20
+    @State private var showCheckmarkDraw = false
+    @State private var showParticleBurst = false
+
+    private var pastelColor: Color {
+        Theme.Pastel.color(for: rowIndex)
+    }
+
+    private var pastelOpacity: Double {
+        colorScheme == .dark ? Theme.Opacity.pastelRowDark : Theme.Opacity.pastelRowLight
+    }
 
     private var isActive: Bool {
         !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id))
@@ -64,6 +77,10 @@ struct TodoRowView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Title row
             HStack(alignment: .center, spacing: 0) {
+                // Emoji / celebration area
+                emojiArea
+                    .padding(.leading, 12)
+
                 ZStack(alignment: .leading) {
                     titleView
                         .opacity(isEditing ? 0 : 1)
@@ -71,7 +88,7 @@ struct TodoRowView: View {
                         .opacity(isEditing ? 1 : 0)
                         .allowsHitTesting(isEditing)
                 }
-                .padding(.leading, 12)
+                .padding(.leading, 6)
                 Spacer()
                 actionArea
             }
@@ -91,8 +108,12 @@ struct TodoRowView: View {
         .padding(.top, 8)
         .padding(.bottom, 8)
         .background {
-            Rectangle()
-                .fill(Color.accentColor.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
+            ZStack {
+                Rectangle()
+                    .fill(pastelColor.opacity(pastelOpacity))
+                Rectangle()
+                    .fill(Color.accentColor.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
+            }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
@@ -214,6 +235,31 @@ struct TodoRowView: View {
         }
     }
 
+    private var emojiArea: some View {
+        ZStack {
+            if showCheckmarkDraw {
+                CheckmarkDrawView()
+                    .frame(width: 20, height: 20)
+                    .transition(.scale.combined(with: .opacity))
+            }
+            if showParticleBurst {
+                ParticleBurstView(color: pastelColor)
+                    .frame(width: 40, height: 40)
+            }
+            if !showCheckmarkDraw {
+                Text(item.emoji ?? "✨")
+                    .font(.system(size: 20))
+                    .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .frame(width: 24, height: 24)
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                store.randomizeEmoji(id: item.id)
+            }
+        }
+    }
+
     @ViewBuilder
     private var titleView: some View {
         if titleHasMarkers {
@@ -317,7 +363,7 @@ struct TodoRowView: View {
             if !isEditing && !item.links.isEmpty && !titleHasMarkers && !descriptionHasMarkers {
                 FlowLayout(spacing: Theme.Size.linkPillSpacing) {
                     ForEach(item.links) { link in
-                        LinkPillView(link: link)
+                        LinkPillView(link: link, tintColor: pastelColor)
                     }
                 }
             }
@@ -390,7 +436,7 @@ struct TodoRowView: View {
             .padding(.vertical, 3)
             .background {
                 Capsule()
-                    .fill(Color.primary.opacity(Theme.Opacity.pillBackground))
+                    .fill(pastelColor.opacity(pastelOpacity))
             }
             .opacity(showTimestamp && !isCompleting ? 1 : 0)
             .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
@@ -465,14 +511,21 @@ struct TodoRowView: View {
             return
         }
         Task { @MainActor in
+            // Show celebration
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                showCheckmarkDraw = true
+                showParticleBurst = true
+            }
             isCompleting = true
-            try? await Task.sleep(for: .milliseconds(200))
+            try? await Task.sleep(for: .milliseconds(400))
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 item.isCompleted.toggle()
             }
             moveFocusToNeighbor()
             try? await Task.sleep(for: .milliseconds(200))
             isCompleting = false
+            showCheckmarkDraw = false
+            showParticleBurst = false
         }
     }
 }
