@@ -104,17 +104,14 @@ struct TodoRowView: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 0)
         .padding(.top, 8)
         .padding(.bottom, 8)
         .background {
-            ZStack {
-                Rectangle()
-                    .fill(pastelColor.opacity(pastelOpacity))
-                Rectangle()
-                    .fill(Color.accentColor.opacity(isKeyboardFocused ? Theme.Opacity.rowHighlight : 0))
-            }
+            RoundedRectangle(cornerRadius: 12)
+                .fill(pastelColor.opacity(isHighlighted ? pastelOpacity * 3 : pastelOpacity))
         }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
         .blur(radius: isEditBlurred ? Theme.Size.editBlurRadius : 0)
@@ -205,6 +202,13 @@ struct TodoRowView: View {
                 return .handled
             }
             return .ignored
+        }
+        .onKeyPress(.space) {
+            guard !isEditing, !isInActionMode else { return .ignored }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                store.randomizeEmoji(id: item.id)
+            }
+            return .handled
         }
         .onKeyPress(.return) {
             guard !isEditing, !isInActionMode else { return .ignored }

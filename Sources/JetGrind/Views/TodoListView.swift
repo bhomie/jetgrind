@@ -55,7 +55,7 @@ struct TodoListView: View {
                                 }
                         } else {
                             ScrollView {
-                                LazyVStack() {
+                                LazyVStack(spacing: 4) {
                                     ForEach(Array(incompleteItems.enumerated()), id: \.element.id) { index, item in
                                         let prevId = index > 0 ? incompleteItems[index - 1].id : nil
                                         let nextId = index < incompleteItems.count - 1 ? incompleteItems[index + 1].id : nil
@@ -63,6 +63,7 @@ struct TodoListView: View {
                                         todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId, rowIndex: index)
                                     }
                                 }
+                                .padding(.horizontal, 8)
                             }
                             .scrollIndicators(.hidden)
                             .mask(

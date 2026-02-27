@@ -12,13 +12,14 @@ struct CompletedTabView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            LazyVStack(spacing: 4) {
                 ForEach(Array(completedItems.enumerated()), id: \.element.id) { index, item in
                     let prevId = index > 0 ? completedItems[index - 1].id : nil
                     let nextId = index < completedItems.count - 1 ? completedItems[index + 1].id : nil
                     completedRow(item: item, previousId: prevId, nextId: nextId, isFirst: index == 0, rowIndex: index)
                 }
             }
+            .padding(.horizontal, 8)
         }
         .scrollIndicators(.hidden)
         .mask(
@@ -95,13 +96,10 @@ struct CompletedTabView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 16)
         .background {
-            ZStack {
-                Rectangle().fill(pastelColor.opacity(Theme.Opacity.pastelRowDark))
-                if isFocused {
-                    Rectangle().fill(Color.primary.opacity(Theme.Opacity.rowHighlight))
-                }
-            }
+            RoundedRectangle(cornerRadius: 12)
+                .fill(pastelColor.opacity(isFocused ? Theme.Opacity.pastelRowDark * 3 : Theme.Opacity.pastelRowDark))
         }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .focusable()
         .focused(focus, equals: .completedTask(item.id))
         .focusEffectDisabled()
