@@ -30,6 +30,8 @@ struct TodoRowView: View {
     @State private var descriptionHeight: CGFloat = 20
     @State private var showCheckmarkDraw = false
     @State private var showParticleBurst = false
+    @State private var emojiScale: CGFloat = 1.0
+    @State private var emojiBlur: CGFloat = 0.0
 
     private var pastelColor: Color {
         Theme.Pastel.color(for: rowIndex)
@@ -205,9 +207,7 @@ struct TodoRowView: View {
         }
         .onKeyPress(.space) {
             guard !isEditing, !isInActionMode else { return .ignored }
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                store.randomizeEmoji(id: item.id)
-            }
+            cycleEmoji()
             return .handled
         }
         .onKeyPress(.return) {
@@ -253,14 +253,14 @@ struct TodoRowView: View {
             if !showCheckmarkDraw {
                 Text(item.emoji ?? "✨")
                     .font(.system(size: 20))
+                    .scaleEffect(emojiScale)
+                    .blur(radius: emojiBlur)
                     .transition(.scale.combined(with: .opacity))
             }
         }
         .frame(width: 24, height: 24)
         .onTapGesture {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                store.randomizeEmoji(id: item.id)
-            }
+            cycleEmoji()
         }
     }
 
@@ -389,39 +389,42 @@ struct TodoRowView: View {
                     return .handled
                 }
         }
-        .padding(.leading, visible ? 12 : 0)
+        .padding(.trailing, 8)
+        .padding(.leading, visible ? 8 : 0)
         .opacity(visible ? 1 : 0)
-        .scaleEffect(visible ? 1 : 0.2)
+        .offset(x: visible ? 0 : 60)
         .frame(width: visible ? nil : 0)
-        .clipped()
         .animation(.spring(response: 0.35, dampingFraction: 0.75), value: visible)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
+        .animation(.spring(response: 0.25, dampingFraction: 0.85), value: focus.wrappedValue)
     }
 
     private func unifiedActionButton(icon: String, label: String, focusCase: TodoFocus, action: @escaping () -> Void) -> some View {
         let isFocused = focus.wrappedValue == focusCase
         return Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: isFocused ? 4 : 0) {
                 Image(systemName: icon)
                     .font(.system(size: Theme.Font.actionIcon))
                 Text(label)
                     .font(.system(size: Theme.Font.actionLabel, weight: .medium))
                     .fixedSize(horizontal: true, vertical: false)
-                    .transition(.asymmetric(
-                        insertion: .push(from: .leading),
-                        removal: .push(from: .trailing)
-                    ))
+                    .transition(.push(from: .leading))
                     .opacity(isFocused ? 1 : 0)
                     .frame(width: isFocused ? nil : 0, alignment: .leading)
                     .clipped()
             }
             .foregroundStyle(isInActionMode && isFocused ? .primary : .secondary)
-            .padding(.horizontal, isInActionMode ? (isFocused ? 10 : 6) : 4)
+            .padding(.horizontal, isFocused ? 10 : (isInActionMode ? 6 : 4))
             .padding(.vertical, isInActionMode ? 5 : 2)
             .frame(height: Theme.Size.actionButtonSize)
             .background {
                 Capsule()
-                    .fill(Color.primary.opacity(isInActionMode ? (isFocused ? Theme.Opacity.rowHighlight : Theme.Opacity.pillBackground) : 0))
+                    .fill(pastelColor.opacity(isInActionMode ? pastelOpacity : 0))
+                    .blendMode(.plusDarker)
+                    .overlay {
+                        Capsule()
+                            .fill(.black.opacity(isInActionMode ? 0.1 : 0))
+                    }
             }
         }
         .buttonStyle(.plain)
@@ -441,6 +444,11 @@ struct TodoRowView: View {
             .background {
                 Capsule()
                     .fill(pastelColor.opacity(pastelOpacity))
+                    .blendMode(.plusDarker)
+                    .overlay {
+                        Capsule()
+                            .fill(.black.opacity(0.1))
+                    }
             }
             .opacity(showTimestamp && !isCompleting ? 1 : 0)
             .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
@@ -451,6 +459,22 @@ struct TodoRowView: View {
                     showTimestamp = true
                 }
             }
+    }
+
+    private func cycleEmoji() {
+        // Pop down with blur
+        withAnimation(.spring(response: 0.15, dampingFraction: 0.9)) {
+            emojiScale = 0.5
+            emojiBlur = 4.0
+        }
+        // Swap the emoji while invisible, then pop back in sharp
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            store.randomizeEmoji(id: item.id)
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.5)) {
+                emojiScale = 1.0
+                emojiBlur = 0.0
+            }
+        }
     }
 
     private func startEditing() {

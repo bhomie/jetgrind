@@ -8,8 +8,9 @@ struct TodoItem: Identifiable, Codable {
     var isCompleted: Bool
     let createdAt: Date
     var emoji: String?
+    var emojiManuallySet: Bool
 
-    init(id: UUID = UUID(), title: String, description: String? = nil, links: [LinkItem] = [], isCompleted: Bool = false, createdAt: Date = Date(), emoji: String? = nil) {
+    init(id: UUID = UUID(), title: String, description: String? = nil, links: [LinkItem] = [], isCompleted: Bool = false, createdAt: Date = Date(), emoji: String? = nil, emojiManuallySet: Bool = false) {
         self.id = id
         self.title = title
         self.description = description
@@ -17,6 +18,7 @@ struct TodoItem: Identifiable, Codable {
         self.isCompleted = isCompleted
         self.createdAt = createdAt
         self.emoji = emoji
+        self.emojiManuallySet = emojiManuallySet
     }
 
     init(from decoder: Decoder) throws {
@@ -28,5 +30,6 @@ struct TodoItem: Identifiable, Codable {
         isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         emoji = try container.decodeIfPresent(String.self, forKey: .emoji)
+        emojiManuallySet = try container.decodeIfPresent(Bool.self, forKey: .emojiManuallySet) ?? false
     }
 }

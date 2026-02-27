@@ -17,7 +17,7 @@ final class TodoStore {
         guard !trimmed.isEmpty else { return }
 
         let result = TodoTextSplitter.split(trimmed)
-        let item = TodoItem(title: result.title, description: result.description, links: result.links, emoji: EmojiPool.random())
+        let item = TodoItem(title: result.title, description: result.description, links: result.links, emoji: EmojiMatcher.bestEmoji(for: result.title))
 
         // If input was a single URL, fetch page title async
         let isSingleURL = URLDetector.isSingleURL(trimmed)
@@ -52,8 +52,8 @@ final class TodoStore {
 
     func randomizeEmoji(id: UUID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
-        let current = items[index].emoji ?? ""
-        items[index].emoji = EmojiPool.randomExcluding(current)
+        items[index].emoji = EmojiMatcher.nextEmoji(for: items[index].title, current: items[index].emoji)
+        items[index].emojiManuallySet = true
         save()
     }
 
@@ -94,6 +94,11 @@ final class TodoStore {
         let trimmedDesc = description?.trimmingCharacters(in: .whitespacesAndNewlines)
         items[index].description = (trimmedDesc?.isEmpty ?? true) ? nil : trimmedDesc
         items[index].links = links
+
+        if !items[index].emojiManuallySet {
+            items[index].emoji = EmojiMatcher.bestEmoji(for: trimmedTitle)
+        }
+
         save()
 
         // Fetch favicons for any new links missing data
