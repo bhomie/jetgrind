@@ -8,6 +8,7 @@ final class PillAttachmentCell: NSTextAttachmentCell {
     nonisolated private static let iconSize = Theme.Size.inlinePillIconSize
     nonisolated private static let pillHeight = Theme.Size.inlinePillHeight
     nonisolated private static let paddingH = Theme.Size.inlinePillPaddingH
+    nonisolated private static let paddingLeft: CGFloat = 4
     nonisolated private static let internalSpacing: CGFloat = 3
 
     init(link: LinkItem) {
@@ -22,7 +23,7 @@ final class PillAttachmentCell: NSTextAttachmentCell {
 
     override func cellSize() -> NSSize {
         let textWidth = (link.displayTitle as NSString).size(withAttributes: [.font: Self.pillFont]).width
-        let width = Self.paddingH + Self.iconSize + Self.internalSpacing + textWidth + Self.paddingH
+        let width = Self.paddingLeft + Self.iconSize + Self.internalSpacing + textWidth + Self.paddingH
         return NSSize(width: ceil(width), height: Self.pillHeight)
     }
 
@@ -33,14 +34,15 @@ final class PillAttachmentCell: NSTextAttachmentCell {
     override func draw(withFrame cellFrame: NSRect, in controlView: NSView?) {
         let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let accentColor = NSColor.controlAccentColor
+        let pastelOpacity = isDark ? Theme.Opacity.pastelRowDark : Theme.Opacity.pastelRowLight
 
         // Capsule background
-        let bgColor = accentColor.withAlphaComponent(0.12)
+        let bgColor = accentColor.withAlphaComponent(pastelOpacity)
         let path = NSBezierPath(roundedRect: cellFrame, xRadius: cellFrame.height / 2, yRadius: cellFrame.height / 2)
         bgColor.setFill()
         path.fill()
 
-        var x = cellFrame.minX + Self.paddingH
+        var x = cellFrame.minX + Self.paddingLeft
 
         // Favicon or globe
         let iconRect = NSRect(

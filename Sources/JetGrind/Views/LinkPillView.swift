@@ -4,7 +4,12 @@ import AppKit
 struct LinkPillView: View {
     let link: LinkItem
     var tintColor: Color = Theme.Color.linkPillText
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isHovered = false
+
+    private var pastelOpacity: Double {
+        colorScheme == .dark ? Theme.Opacity.pastelRowDark : Theme.Opacity.pastelRowLight
+    }
 
     var body: some View {
         Button {
@@ -17,11 +22,17 @@ struct LinkPillView: View {
                     .foregroundStyle(tintColor)
                     .lineLimit(1)
             }
-            .padding(.horizontal, Theme.Size.linkPillPaddingH)
+            .padding(.leading, (Theme.Size.linkPillHeight - Theme.Font.linkPillFavicon) / 2)
+            .padding(.trailing, Theme.Size.linkPillPaddingH)
             .frame(height: Theme.Size.linkPillHeight)
             .background {
                 Capsule()
-                    .fill(tintColor.opacity(isHovered ? Theme.Opacity.linkPillHover : Theme.Opacity.linkPillBackground))
+                    .fill(tintColor.opacity(isHovered ? pastelOpacity + 0.04 : pastelOpacity))
+                    .blendMode(.plusDarker)
+                    .overlay {
+                        Capsule()
+                            .fill(.black.opacity(0.1))
+                    }
             }
         }
         .buttonStyle(.plain)

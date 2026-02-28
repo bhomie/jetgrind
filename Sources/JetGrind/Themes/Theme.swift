@@ -64,10 +64,6 @@ enum Theme {
         static let rippleAccent: Double = 0.3
         /// Description text
         static let descriptionText: Double = 0.7
-        /// Link pill background
-        static let linkPillBackground: Double = 0.10
-        /// Link pill hover
-        static let linkPillHover: Double = 0.15
         /// Edit dim on non-editing rows
         static let editDimOpacity: Double = 0.4
         /// Pastel row tint (dark mode)
