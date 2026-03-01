@@ -371,7 +371,32 @@ struct TodoRowView: View {
                     }
                 }
             }
+
+            if isEditing {
+                doneButton
+            }
         }
+    }
+
+    private var doneButton: some View {
+        Button(action: commitEdit) {
+            HStack(spacing: 4) {
+                Text("Done")
+                    .font(.system(size: Theme.Font.body, weight: .medium))
+                Image(systemName: "return")
+                    .font(.system(size: 10))
+            }
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 5)
+            .background {
+                Capsule()
+                    .fill(pastelColor.opacity(pastelOpacity * 2))
+                    .blendMode(.plusDarker)
+            }
+        }
+        .buttonStyle(.plain)
+        .padding(.trailing, 12)
     }
 
     private var actionArea: some View {
@@ -382,6 +407,11 @@ struct TodoRowView: View {
                     startEditing()
                     return .handled
                 }
+                .scaleEffect(isEditing ? 0.01 : 1)
+                .opacity(isEditing ? 0 : 1)
+                .frame(width: isEditing ? 0 : nil)
+                .clipped()
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
             unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), action: { moveFocusToNeighbor(); onDelete() })
                 .onKeyPress(.return) {
                     moveFocusToNeighbor()

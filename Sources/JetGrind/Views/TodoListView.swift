@@ -183,6 +183,9 @@ struct TodoListView: View {
             previousTaskId: previousTaskId,
             nextTaskId: nextTaskId,
             onDelete: {
+                if editingTaskId == item.id {
+                    editingTaskId = nil
+                }
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     store.delete(id: item.id)
                 }
