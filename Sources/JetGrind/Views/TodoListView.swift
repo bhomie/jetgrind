@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TodoListView: View {
     @Bindable var store: TodoStore
+    var settingsStore: SettingsStore
     @FocusState private var focus: TodoFocus?
     @State private var showEmptyState = false
     @State private var showAllDoneState = false
@@ -96,6 +97,11 @@ struct TodoListView: View {
                 .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showCompletedView)
 
                 Spacer(minLength: 0)
+            }
+            .overlay(alignment: .bottom) {
+                HotkeyHintsView(newTaskShortcut: settingsStore.displayString)
+                    .padding(.bottom, 8)
+                    .allowsHitTesting(false)
             }
         }
         .frame(width: 320, height: 400)

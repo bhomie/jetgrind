@@ -46,7 +46,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupPopover() {
         popover = NSPopover()
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: TodoListView(store: store))
+        popover.contentViewController = NSHostingController(rootView: TodoListView(store: store, settingsStore: settingsStore))
     }
 
     private func setupHotKey() {

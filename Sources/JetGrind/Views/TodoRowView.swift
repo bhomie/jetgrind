@@ -28,6 +28,7 @@ struct TodoRowView: View {
     @State private var descriptionFocused = false
     @State private var titleHeight: CGFloat = 20
     @State private var descriptionHeight: CGFloat = 20
+    @State private var readOnlyDescriptionHeight: CGFloat = 18
     @State private var showCheckmarkDraw = false
     @State private var showParticleBurst = false
     @State private var emojiScale: CGFloat = 1.0
@@ -102,7 +103,7 @@ struct TodoRowView: View {
             // Expanded content: description + inline pills
             if isExpanded || isEditing {
                 expandedContent
-                    .padding(.leading, 12)
+                    .padding(.horizontal, 12)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
@@ -352,9 +353,9 @@ struct TodoRowView: View {
                         font: .systemFont(ofSize: Theme.Font.description),
                         textColor: NSColor.labelColor.withAlphaComponent(Theme.Opacity.descriptionText),
                         isFocused: .constant(false),
-                        height: .constant(18)
+                        height: $readOnlyDescriptionHeight
                     )
-                    .frame(minHeight: 18)
+                    .frame(height: max(readOnlyDescriptionHeight, 18))
                 } else {
                     Text(description)
                         .font(.system(size: Theme.Font.description))
@@ -397,6 +398,7 @@ struct TodoRowView: View {
         }
         .buttonStyle(.plain)
         .padding(.trailing, 12)
+        .transition(.blurResolve)
     }
 
     private var actionArea: some View {
@@ -511,10 +513,10 @@ struct TodoRowView: View {
         editText = item.title
         editDescription = item.description ?? ""
         editLinks = item.links
-        isEditing = true
-        onEditingChanged?(true)
-        if !isExpanded && (hasExpandedContent || true) {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            isEditing = true
+            onEditingChanged?(true)
+            if !isExpanded && (hasExpandedContent || true) {
                 onExpand()
             }
         }
