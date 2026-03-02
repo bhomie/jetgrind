@@ -131,10 +131,8 @@ struct TodoListView: View {
             case .task(let id):
                 let item = store.items.first { $0.id == id }
                 let hasContent = item?.description != nil || !(item?.links.isEmpty ?? true)
-                if hasContent {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        expandedTaskId = id
-                    }
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    expandedTaskId = hasContent ? id : nil
                 }
             default:
                 break

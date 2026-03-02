@@ -7,11 +7,7 @@ struct HotKeyRecorderView: View {
     @State private var monitor = KeyEventMonitor()
 
     var body: some View {
-        HStack {
-            Text(isRecording ? "Press shortcut..." : settingsStore.displayString)
-                .font(.system(.body, design: .rounded))
-                .foregroundStyle(isRecording ? .secondary : .primary)
-                .frame(minWidth: 80)
+        LabeledContent {
             Button(isRecording ? "Cancel" : "Record") {
                 if isRecording {
                     stopRecording()
@@ -19,6 +15,11 @@ struct HotKeyRecorderView: View {
                     startRecording()
                 }
             }
+        } label: {
+            Text(isRecording ? "Press shortcut..." : settingsStore.displayString)
+                .font(.system(.body, design: .rounded))
+                .foregroundStyle(isRecording ? .secondary : .primary)
+                .frame(maxHeight: .infinity, alignment: .center)
         }
     }
 
