@@ -1,13 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Build
-
-```bash
-swift build
-swift run JetGrind  # launches menu bar app
-```
+When verifying, First 'pkill jetgrind', then launch the app via 'swift run JetGrind' in the terminal, background the process and ask the user to verify changes.
 
 ## Architecture
 
@@ -31,4 +25,4 @@ Keep summaries very succinct.
 
 ## Planning
 
-When planning implementation, always ask follow-up questions to understand intent and bring clarity to the vision before proposing an approach. Don't assume—ask.
+When planning always use the /brainstorming skill.

@@ -77,7 +77,7 @@ struct TodoRowView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
             // Title row
             HStack(alignment: .center, spacing: 0) {
                 // Emoji / celebration area
@@ -96,7 +96,6 @@ struct TodoRowView: View {
                 actionArea
             }
 
-            // Timestamp pill below title
             timestampView
                 .padding(.leading, 12)
 
@@ -104,12 +103,13 @@ struct TodoRowView: View {
             if isExpanded || isEditing {
                 expandedContent
                     .padding(.horizontal, 12)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .padding(.vertical, 4)
+                    .transition(.opacity)
             }
         }
         .padding(.horizontal, 0)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
         .background {
             RoundedRectangle(cornerRadius: 12)
                 .fill(pastelColor.opacity(isHighlighted ? pastelOpacity * 3 : pastelOpacity))
@@ -471,17 +471,6 @@ struct TodoRowView: View {
         Text(item.createdAt.relativeFormat)
             .font(.system(size: Theme.Font.timestamp))
             .foregroundStyle(.secondary)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background {
-                Capsule()
-                    .fill(pastelColor.opacity(pastelOpacity))
-                    .blendMode(.plusDarker)
-                    .overlay {
-                        Capsule()
-                            .fill(.black.opacity(0.1))
-                    }
-            }
             .opacity(showTimestamp && !isCompleting ? 1 : 0)
             .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
             .animation(.spring(response: 0.25, dampingFraction: 0.85), value: isCompleting)
