@@ -29,15 +29,16 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Global Shortcut") {
+            Section("General") {
+                Toggle("Launch at Login", isOn: launchAtLogin)
+                Toggle("Show Shortcut Hints", isOn: $settingsStore.showShortcutHints)
+            }
+
+            Section("Keyboard Shortcut") {
                 HotKeyRecorderView(settingsStore: settingsStore)
             }
 
-            Section("Startup") {
-                Toggle("Launch at Login", isOn: launchAtLogin)
-            }
-
-            Section("Data") {
+            Section {
                 Button("Clear Completed Tasks", role: .destructive) {
                     showClearConfirmation = true
                 }

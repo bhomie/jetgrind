@@ -99,9 +99,11 @@ struct TodoListView: View {
                 Spacer(minLength: 0)
             }
             .overlay(alignment: .bottom) {
-                HotkeyHintsView(newTaskShortcut: settingsStore.displayString)
-                    .padding(.bottom, 8)
-                    .allowsHitTesting(false)
+                if settingsStore.showShortcutHints {
+                    HotkeyHintsView(newTaskShortcut: settingsStore.displayString)
+                        .padding(.bottom, 8)
+                        .allowsHitTesting(false)
+                }
             }
         }
         .frame(width: 320, height: 400)

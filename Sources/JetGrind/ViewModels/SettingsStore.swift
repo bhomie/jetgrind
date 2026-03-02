@@ -6,6 +6,7 @@ import HotKey
 final class SettingsStore {
     private static let keyCodeKey = "jetgrind.hotkey.keyCode"
     private static let modifiersKey = "jetgrind.hotkey.modifiers"
+    private static let showShortcutHintsKey = "jetgrind.showShortcutHints"
 
     private static let defaultKeyCode: UInt32 = Key.t.carbonKeyCode
     private static let defaultModifiers: UInt32 = NSEvent.ModifierFlags([.command, .shift]).carbonFlags
@@ -13,6 +14,9 @@ final class SettingsStore {
     var carbonKeyCode: UInt32
     var carbonModifiers: UInt32
     var hotKey: HotKey?
+    var showShortcutHints: Bool {
+        didSet { UserDefaults.standard.set(showShortcutHints, forKey: Self.showShortcutHintsKey) }
+    }
 
     var displayString: String {
         KeyCombo(carbonKeyCode: carbonKeyCode, carbonModifiers: carbonModifiers).description
@@ -27,6 +31,7 @@ final class SettingsStore {
             carbonKeyCode = Self.defaultKeyCode
             carbonModifiers = Self.defaultModifiers
         }
+        showShortcutHints = defaults.object(forKey: Self.showShortcutHintsKey) as? Bool ?? true
         registerHotKey()
     }
 

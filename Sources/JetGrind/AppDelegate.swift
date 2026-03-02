@@ -130,6 +130,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.styleMask = [.titled, .closable]
         window.setContentSize(hostingController.view.fittingSize)
         window.center()
+        window.level = .floating
         window.makeKeyAndOrderFront(nil)
         settingsWindow = window
     }
