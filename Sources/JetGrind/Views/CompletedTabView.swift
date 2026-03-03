@@ -12,14 +12,39 @@ struct CompletedTabView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 4) {
-                ForEach(Array(completedItems.enumerated()), id: \.element.id) { index, item in
-                    let prevId = index > 0 ? completedItems[index - 1].id : nil
-                    let nextId = index < completedItems.count - 1 ? completedItems[index + 1].id : nil
-                    completedRow(item: item, previousId: prevId, nextId: nextId, isFirst: index == 0, rowIndex: index)
+            ScrollViewReader { proxy in
+                LazyVStack(spacing: 4) {
+                    ForEach(Array(completedItems.enumerated()), id: \.element.id) { index, item in
+                        let prevId = index > 0 ? completedItems[index - 1].id : nil
+                        let nextId = index < completedItems.count - 1 ? completedItems[index + 1].id : nil
+                        completedRow(item: item, previousId: prevId, nextId: nextId, isFirst: index == 0, rowIndex: index)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .onChange(of: focus.wrappedValue) { oldFocus, newFocus in
+                    guard let newFocus else { return }
+
+                    switch newFocus {
+                    case .completedTask(let id):
+                        let newIndex = completedItems.firstIndex(where: { $0.id == id }) ?? 0
+                        let oldIndex: Int
+                        if case .completedTask(let oldId) = oldFocus {
+                            oldIndex = completedItems.firstIndex(where: { $0.id == oldId }) ?? 0
+                        } else {
+                            oldIndex = -1
+                        }
+                        if oldIndex == newIndex { return }
+                        let anchor: UnitPoint = newIndex > oldIndex
+                            ? UnitPoint(x: 0.5, y: 0.85)
+                            : UnitPoint(x: 0.5, y: 0.15)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            proxy.scrollTo(id, anchor: anchor)
+                        }
+                    default:
+                        break
+                    }
                 }
             }
-            .padding(.horizontal, 8)
         }
         .scrollIndicators(.hidden)
         .mask(
