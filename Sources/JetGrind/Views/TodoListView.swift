@@ -13,6 +13,7 @@ struct TodoListView: View {
     @State private var expandedTaskId: UUID?
     @State private var editingTaskId: UUID?
     @State private var lastCompletedIndex: Int?
+    @State private var isScrolledFromTop = false
 
     private var incompleteItems: [TodoItem] {
         store.items.filter { !$0.isCompleted }
@@ -95,17 +96,47 @@ struct TodoListView: View {
                                 }
                             }
                             .scrollIndicators(.hidden)
+                            .onScrollGeometryChange(for: Bool.self) { geometry in
+                                geometry.contentOffset.y > 5
+                            } action: { _, isScrolled in
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    isScrolledFromTop = isScrolled
+                                }
+                            }
                             .mask(
                                 LinearGradient(
                                     stops: [
-                                        .init(color: .black, location: 0),
+                                        .init(color: isScrolledFromTop ? .clear : .black, location: 0),
+                                        .init(color: .black, location: isScrolledFromTop ? 0.12 : 0),
                                         .init(color: .black, location: 0.7),
                                         .init(color: .clear, location: 1.0)
                                     ],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
+                                .animation(.easeInOut(duration: 0.2), value: isScrolledFromTop)
                             )
+                            .overlay(alignment: .bottom) {
+                                VStack(spacing: 0) {
+                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
+                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
+                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
+                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
+                                }
+                                .allowsHitTesting(false)
+                            }
+                            .overlay(alignment: .top) {
+                                if isScrolledFromTop {
+                                    VStack(spacing: 0) {
+                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
+                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
+                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
+                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
+                                    }
+                                    .transition(.opacity)
+                                    .allowsHitTesting(false)
+                                }
+                            }
                         }
                     }
                     .opacity(showCompletedView ? 0 : 1)
