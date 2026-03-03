@@ -6,6 +6,8 @@ struct CompletedTabView: View {
     let onDismiss: () -> Void
     let onDismissToTask: (UUID) -> Void
 
+    @State private var isScrolledFromTop = false
+
     private var completedItems: [TodoItem] {
         store.items.filter { $0.isCompleted }
     }
@@ -47,17 +49,47 @@ struct CompletedTabView: View {
             }
         }
         .scrollIndicators(.hidden)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y > 5
+        } action: { _, isScrolled in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isScrolledFromTop = isScrolled
+            }
+        }
         .mask(
             LinearGradient(
                 stops: [
-                    .init(color: .black, location: 0),
+                    .init(color: isScrolledFromTop ? .clear : .black, location: 0),
+                    .init(color: .black, location: isScrolledFromTop ? 0.12 : 0),
                     .init(color: .black, location: 0.7),
                     .init(color: .clear, location: 1.0)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
+            .animation(.easeInOut(duration: 0.2), value: isScrolledFromTop)
         )
+        .overlay(alignment: .bottom) {
+            VStack(spacing: 0) {
+                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
+                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
+                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
+                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
+            }
+            .allowsHitTesting(false)
+        }
+        .overlay(alignment: .top) {
+            if isScrolledFromTop {
+                VStack(spacing: 0) {
+                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
+                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
+                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
+                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
+                }
+                .transition(.opacity)
+                .allowsHitTesting(false)
+            }
+        }
     }
 
     private func deleteTask(item: TodoItem, nextId: UUID?, previousId: UUID?) {
