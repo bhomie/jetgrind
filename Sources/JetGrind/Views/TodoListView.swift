@@ -65,6 +65,7 @@ struct TodoListView: View {
 
                                             todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId, rowIndex: index)
                                         }
+                                        Spacer().frame(height: 36)
                                     }
                                     .padding(.horizontal, 8)
                                     .onChange(of: focus) { oldFocus, newFocus in
@@ -116,27 +117,6 @@ struct TodoListView: View {
                                 )
                                 .animation(.easeInOut(duration: 0.2), value: isScrolledFromTop)
                             )
-                            .overlay(alignment: .bottom) {
-                                VStack(spacing: 0) {
-                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
-                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
-                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
-                                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
-                                }
-                                .allowsHitTesting(false)
-                            }
-                            .overlay(alignment: .top) {
-                                if isScrolledFromTop {
-                                    VStack(spacing: 0) {
-                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
-                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
-                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
-                                        Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
-                                    }
-                                    .transition(.opacity)
-                                    .allowsHitTesting(false)
-                                }
-                            }
                         }
                     }
                     .opacity(showCompletedView ? 0 : 1)

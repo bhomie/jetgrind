@@ -21,6 +21,7 @@ struct CompletedTabView: View {
                         let nextId = index < completedItems.count - 1 ? completedItems[index + 1].id : nil
                         completedRow(item: item, previousId: prevId, nextId: nextId, isFirst: index == 0, rowIndex: index)
                     }
+                    Spacer().frame(height: 36)
                 }
                 .padding(.horizontal, 8)
                 .onChange(of: focus.wrappedValue) { oldFocus, newFocus in
@@ -69,27 +70,6 @@ struct CompletedTabView: View {
             )
             .animation(.easeInOut(duration: 0.2), value: isScrolledFromTop)
         )
-        .overlay(alignment: .bottom) {
-            VStack(spacing: 0) {
-                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
-                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
-                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
-                Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
-            }
-            .allowsHitTesting(false)
-        }
-        .overlay(alignment: .top) {
-            if isScrolledFromTop {
-                VStack(spacing: 0) {
-                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(1.0)
-                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.7)
-                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.4)
-                    Rectangle().fill(.ultraThinMaterial).frame(height: 12).opacity(0.15)
-                }
-                .transition(.opacity)
-                .allowsHitTesting(false)
-            }
-        }
     }
 
     private func deleteTask(item: TodoItem, nextId: UUID?, previousId: UUID?) {
