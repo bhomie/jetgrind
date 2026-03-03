@@ -56,15 +56,43 @@ struct TodoListView: View {
                                 }
                         } else {
                             ScrollView {
-                                LazyVStack(spacing: 4) {
-                                    ForEach(Array(incompleteItems.enumerated()), id: \.element.id) { index, item in
-                                        let prevId = index > 0 ? incompleteItems[index - 1].id : nil
-                                        let nextId = index < incompleteItems.count - 1 ? incompleteItems[index + 1].id : nil
+                                ScrollViewReader { proxy in
+                                    LazyVStack(spacing: 4) {
+                                        ForEach(Array(incompleteItems.enumerated()), id: \.element.id) { index, item in
+                                            let prevId = index > 0 ? incompleteItems[index - 1].id : nil
+                                            let nextId = index < incompleteItems.count - 1 ? incompleteItems[index + 1].id : nil
 
-                                        todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId, rowIndex: index)
+                                            todoRow(item: item, previousTaskId: prevId, nextTaskId: nextId, rowIndex: index)
+                                        }
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .onChange(of: focus) { oldFocus, newFocus in
+                                        guard let newFocus else { return }
+
+                                        switch newFocus {
+                                        case .task(let id):
+                                            let newIndex = incompleteItems.firstIndex(where: { $0.id == id }) ?? 0
+                                            let oldIndex: Int
+                                            switch oldFocus {
+                                            case .task(let oldId):
+                                                oldIndex = incompleteItems.firstIndex(where: { $0.id == oldId }) ?? 0
+                                            case .input:
+                                                oldIndex = -1
+                                            default:
+                                                return // action/edit focus on same row — no scroll
+                                            }
+                                            if oldIndex == newIndex { return }
+                                            let anchor: UnitPoint = newIndex > oldIndex
+                                                ? UnitPoint(x: 0.5, y: 0.85)
+                                                : UnitPoint(x: 0.5, y: 0.15)
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                proxy.scrollTo(id, anchor: anchor)
+                                            }
+                                        default:
+                                            break
+                                        }
                                     }
                                 }
-                                .padding(.horizontal, 8)
                             }
                             .scrollIndicators(.hidden)
                             .mask(
