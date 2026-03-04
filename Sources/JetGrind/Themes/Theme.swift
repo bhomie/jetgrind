@@ -99,7 +99,7 @@ enum Theme {
         static let completedCheckmark = SwiftUI.Color.green
         static let linkPillText = SwiftUI.Color.accentColor
         /// Warm cream/brown for input field
-        static let inputWarm = adaptiveColor(light: NSColor(red: 0.58, green: 0.44, blue: 0.30, alpha: 1), dark: NSColor(red: 0.76, green: 0.62, blue: 0.48, alpha: 1))
+        static let inputWarm = adaptiveColor(light: NSColor(red: 0.40, green: 0.52, blue: 0.58, alpha: 1), dark: NSColor(red: 0.76, green: 0.62, blue: 0.48, alpha: 1))
     }
 
     // MARK: - Pastel palette

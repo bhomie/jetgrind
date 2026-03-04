@@ -56,7 +56,7 @@ struct TodoRowView: View {
 
     private var isInActionMode: Bool {
         switch focus.wrappedValue {
-        case .actionEdit(let id), .actionDelete(let id):
+        case .actionEdit(let id), .actionComplete(let id), .actionDelete(let id):
             return id == item.id
         default:
             return false
@@ -82,7 +82,6 @@ struct TodoRowView: View {
             HStack(alignment: .center, spacing: 0) {
                 // Emoji / celebration area
                 emojiArea
-                    .padding(.leading, 12)
 
                 ZStack(alignment: .leading) {
                     titleView
@@ -97,17 +96,15 @@ struct TodoRowView: View {
             }
 
             timestampView
-                .padding(.leading, 12)
 
             // Expanded content: description + inline pills
             if isExpanded || isEditing {
                 expandedContent
-                    .padding(.horizontal, 12)
                     .padding(.vertical, 4)
                     .transition(.opacity)
             }
         }
-        .padding(.horizontal, 0)
+        .padding(.horizontal, 14)
         .padding(.top, 16)
         .padding(.bottom, 12)
         .background {
@@ -178,7 +175,7 @@ struct TodoRowView: View {
             guard !isEditing, !item.isCompleted else { return .ignored }
             if isInActionMode {
                 if let idx = focus.wrappedValue?.actionIndex {
-                    if idx < 1 {
+                    if idx < 2 {
                         focus.wrappedValue = TodoFocus.action(index: idx + 1, taskId: item.id)
                     } else if let openCompleted = onOpenCompleted {
                         openCompleted()
@@ -397,7 +394,6 @@ struct TodoRowView: View {
             }
         }
         .buttonStyle(.plain)
-        .padding(.trailing, 12)
         .transition(.blurResolve)
     }
 
@@ -414,6 +410,16 @@ struct TodoRowView: View {
                 .frame(width: isEditing ? 0 : nil)
                 .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
+            unifiedActionButton(icon: "checkmark", label: "Complete", focusCase: .actionComplete(item.id), action: handleToggle)
+                .onKeyPress(.return) {
+                    handleToggle()
+                    return .handled
+                }
+                .scaleEffect(isEditing ? 0.01 : 1)
+                .opacity(isEditing ? 0 : 1)
+                .frame(width: isEditing ? 0 : nil)
+                .clipped()
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
             unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), action: { moveFocusToNeighbor(); onDelete() })
                 .onKeyPress(.return) {
                     moveFocusToNeighbor()
@@ -421,7 +427,6 @@ struct TodoRowView: View {
                     return .handled
                 }
         }
-        .padding(.trailing, 8)
         .padding(.leading, visible ? 8 : 0)
         .opacity(visible ? 1 : 0)
         .offset(x: visible ? 0 : 60)
