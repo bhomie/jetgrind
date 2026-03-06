@@ -267,18 +267,18 @@ struct TodoListView: View {
 
             VStack(spacing: 12) {
                 Text("🌱")
-                    .font(.system(size: Theme.Font.emptyStateIcon))
+                    .font(.system(size: Theme.Font.hero))
                     .offset(y: showEmptyState ? -4 : 4)
                     .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: showEmptyState)
 
                 Text("Plant your first task")
-                    .font(.headline)
+                    .font(.system(size: Theme.Font.body, weight: .bold))
                     .foregroundStyle(.secondary)
                     .opacity(showEmptyState ? 1.0 : 0)
                     .blur(radius: showEmptyState ? 0 : 4)
 
                 Text("Type something above to begin")
-                    .font(.subheadline)
+                    .font(.system(size: Theme.Font.caption))
                     .foregroundStyle(.tertiary)
                     .opacity(showEmptyState ? 1.0 : 0)
                     .blur(radius: showEmptyState ? 0 : 4)
@@ -298,13 +298,13 @@ struct TodoListView: View {
 
             VStack(spacing: 12) {
                 Text("🎉")
-                    .font(.system(size: Theme.Font.emptyStateIcon))
+                    .font(.system(size: Theme.Font.hero))
                     .rotationEffect(.degrees(showAllDoneState ? 10 : -10))
                     .scaleEffect(showAllDoneState ? 1.1 : 0.95)
                     .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: showAllDoneState)
 
                 Text("Crushed it!")
-                    .font(.headline)
+                    .font(.system(size: Theme.Font.body, weight: .bold))
                     .foregroundStyle(.secondary)
             }
         }

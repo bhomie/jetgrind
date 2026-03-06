@@ -255,7 +255,7 @@ struct TodoRowView: View {
             }
             if !showCheckmarkDraw {
                 Text(item.emoji ?? "✨")
-                    .font(.system(size: 20))
+                    .font(.system(size: Theme.Font.display))
                     .scaleEffect(emojiScale)
                     .blur(radius: emojiBlur)
                     .transition(.scale.combined(with: .opacity))
@@ -275,7 +275,7 @@ struct TodoRowView: View {
                 links: .constant(item.links),
                 isEditable: false,
                 isSingleLine: true,
-                font: .systemFont(ofSize: Theme.Font.titleMedium, weight: .medium),
+                font: .systemFont(ofSize: Theme.Font.title, weight: .medium),
                 textColor: item.isCompleted ? .secondaryLabelColor : .labelColor,
                 isFocused: .constant(false),
                 height: .constant(20)
@@ -289,7 +289,7 @@ struct TodoRowView: View {
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         } else {
             Text(item.title)
-                .font(.system(size: Theme.Font.titleMedium, weight: .medium))
+                .font(.system(size: Theme.Font.title, weight: .medium))
                 .strikethrough(item.isCompleted)
                 .foregroundStyle(item.isCompleted ? .secondary : .primary)
                 .lineLimit(1)
@@ -308,7 +308,7 @@ struct TodoRowView: View {
             links: $editLinks,
             isEditable: true,
             isSingleLine: true,
-            font: .systemFont(ofSize: Theme.Font.titleMedium, weight: .medium),
+            font: .systemFont(ofSize: Theme.Font.title, weight: .medium),
             textColor: .labelColor,
             placeholderText: "Edit task",
             onCommit: { commitEdit() },
@@ -332,7 +332,7 @@ struct TodoRowView: View {
                     links: $editLinks,
                     isEditable: true,
                     isSingleLine: false,
-                    font: .systemFont(ofSize: Theme.Font.description),
+                    font: .systemFont(ofSize: Theme.Font.body),
                     textColor: NSColor.labelColor.withAlphaComponent(Theme.Opacity.descriptionText),
                     placeholderText: "Add description...",
                     onCommit: { commitEdit() },
@@ -352,7 +352,7 @@ struct TodoRowView: View {
                         links: .constant(item.links),
                         isEditable: false,
                         isSingleLine: false,
-                        font: .systemFont(ofSize: Theme.Font.description),
+                        font: .systemFont(ofSize: Theme.Font.body),
                         textColor: NSColor.labelColor.withAlphaComponent(Theme.Opacity.descriptionText),
                         isFocused: .constant(false),
                         height: $readOnlyDescriptionHeight
@@ -360,7 +360,7 @@ struct TodoRowView: View {
                     .frame(height: max(readOnlyDescriptionHeight, 18))
                 } else {
                     Text(description)
-                        .font(.system(size: Theme.Font.description))
+                        .font(.system(size: Theme.Font.body))
                         .foregroundStyle(.primary.opacity(Theme.Opacity.descriptionText))
                         .lineLimit(isExpanded ? nil : 2)
                 }
@@ -387,7 +387,7 @@ struct TodoRowView: View {
                 Text("Done")
                     .font(.system(size: Theme.Font.body, weight: .medium))
                 Image(systemName: "return")
-                    .font(.system(size: 10))
+                    .font(.system(size: Theme.Font.caption))
             }
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
@@ -446,9 +446,9 @@ struct TodoRowView: View {
         return Button(action: action) {
             HStack(spacing: isFocused ? 4 : 0) {
                 Image(systemName: icon)
-                    .font(.system(size: Theme.Font.actionIcon))
+                    .font(.system(size: Theme.Font.body))
                 Text(label)
-                    .font(.system(size: Theme.Font.actionLabel, weight: .medium))
+                    .font(.system(size: Theme.Font.caption, weight: .medium))
                     .fixedSize(horizontal: true, vertical: false)
                     .transition(.push(from: .leading))
                     .opacity(isFocused ? 1 : 0)
@@ -479,7 +479,7 @@ struct TodoRowView: View {
 
     private var timestampView: some View {
         Text(item.createdAt.relativeFormat)
-            .font(.system(size: Theme.Font.timestamp))
+            .font(.system(size: Theme.Font.body))
             .foregroundStyle(.secondary)
             .opacity(showTimestamp && !isCompleting ? 1 : 0)
             .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))

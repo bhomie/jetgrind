@@ -11,34 +11,11 @@ enum Theme {
     // MARK: - Font sizes
 
     enum Font {
-        /// Time pill / timestamp label
-        static let timestamp: CGFloat = 12
-        /// Body text, input field, list row text
+        static let caption: CGFloat = 10
         static let body: CGFloat = 12
-        /// Body text medium weight (titles, labels)
-        static let bodyMedium: CGFloat = 12
-        /// Body text semibold (section headers)
-        static let bodySemibold: CGFloat = 12
-        /// Row title, checkbox, small icons
         static let title: CGFloat = 16
-        /// Row title medium weight
-        static let titleMedium: CGFloat = 16
-        /// Action icon (delete, etc.)
-        static let icon: CGFloat = 16
-        /// Large icon (add button)
-        static let iconLarge: CGFloat = 18
-        /// Empty state / hero icon
-        static let emptyStateIcon: CGFloat = 48
-        /// Action button label text
-        static let actionLabel: CGFloat = 11
-        /// Action button icon
-        static let actionIcon: CGFloat = 12
-        /// Description text
-        static let description: CGFloat = 13
-        /// Link pill label
-        static let linkPillLabel: CGFloat = 11
-        /// Link pill favicon
-        static let linkPillFavicon: CGFloat = 12
+        static let display: CGFloat = 20
+        static let hero: CGFloat = 48
     }
 
     // MARK: - Opacities

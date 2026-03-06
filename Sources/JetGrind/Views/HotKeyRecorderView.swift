@@ -17,7 +17,7 @@ struct HotKeyRecorderView: View {
             }
         } label: {
             Text(isRecording ? "Press shortcut..." : settingsStore.displayString)
-                .font(.system(.body, design: .rounded))
+                .font(.system(size: Theme.Font.body, design: .rounded))
                 .foregroundStyle(isRecording ? .secondary : .primary)
                 .frame(maxHeight: .infinity, alignment: .center)
         }

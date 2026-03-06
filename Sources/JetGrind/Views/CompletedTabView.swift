@@ -108,15 +108,15 @@ struct CompletedTabView: View {
         HStack(spacing: 12) {
             if let emoji = item.emoji {
                 Text(emoji)
-                    .font(.system(size: 16))
+                    .font(.system(size: Theme.Font.title))
             } else {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: Theme.Font.icon))
+                    .font(.system(size: Theme.Font.title))
                     .foregroundStyle(Theme.Color.completedCheckmark)
             }
 
             Text(item.title)
-                .font(.system(size: Theme.Font.bodyMedium, weight: .medium))
+                .font(.system(size: Theme.Font.body, weight: .medium))
                 .strikethrough()
                 .foregroundStyle(.secondary)
                 .lineLimit(1)

@@ -18,11 +18,11 @@ struct LinkPillView: View {
             HStack(spacing: Theme.Size.linkPillInternalSpacing) {
                 faviconImage
                 Text(link.displayTitle)
-                    .font(.system(size: Theme.Font.linkPillLabel, weight: .medium))
+                    .font(.system(size: Theme.Font.caption, weight: .medium))
                     .foregroundStyle(tintColor)
                     .lineLimit(1)
             }
-            .padding(.leading, (Theme.Size.linkPillHeight - Theme.Font.linkPillFavicon) / 2)
+            .padding(.leading, (Theme.Size.linkPillHeight - Theme.Font.body) / 2)
             .padding(.trailing, Theme.Size.linkPillPaddingH)
             .frame(height: Theme.Size.linkPillHeight)
             .background {
@@ -48,11 +48,11 @@ struct LinkPillView: View {
         if let data = link.faviconData, let nsImage = NSImage(data: data) {
             Image(nsImage: nsImage)
                 .resizable()
-                .frame(width: Theme.Font.linkPillFavicon, height: Theme.Font.linkPillFavicon)
+                .frame(width: Theme.Font.body, height: Theme.Font.body)
                 .clipShape(Circle())
         } else {
             Image(systemName: "globe")
-                .font(.system(size: Theme.Font.linkPillFavicon))
+                .font(.system(size: Theme.Font.body))
                 .foregroundStyle(.secondary)
         }
     }

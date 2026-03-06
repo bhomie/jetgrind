@@ -87,8 +87,8 @@ struct AddTodoView: View {
             }) {
                 Image(systemName: "plus.circle.fill")
                     .foregroundStyle(showCompletedView ? .secondary : Color.accentColor)
-                    .font(.system(size: Theme.Font.iconLarge))
-                    .frame(width: Theme.Font.iconLarge, height: Theme.Font.iconLarge)
+                    .font(.system(size: Theme.Font.display))
+                    .frame(width: Theme.Font.display, height: Theme.Font.display)
             }
             .buttonStyle(.plain)
             .opacity(showCompletedView ? 1 : (hasValidText ? 1 : 0))
@@ -117,14 +117,14 @@ struct AddTodoView: View {
         }) {
             HStack(spacing: 4) {
                 Image(systemName: "checkmark")
-                    .font(.system(size: Theme.Font.actionIcon))
+                    .font(.system(size: Theme.Font.body))
                 if showCompletedView {
                     Text("Completed")
-                        .font(.system(size: Theme.Font.bodyMedium, weight: .semibold))
+                        .font(.system(size: Theme.Font.body, weight: .semibold))
                     Spacer()
                 }
                 Text("\(completedCount)")
-                    .font(.system(size: Theme.Font.bodyMedium, weight: .medium))
+                    .font(.system(size: Theme.Font.body, weight: .medium))
                     .contentTransition(.numericText())
                     .scaleEffect(countScale)
             }

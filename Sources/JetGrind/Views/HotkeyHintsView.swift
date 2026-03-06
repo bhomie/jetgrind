@@ -15,7 +15,7 @@ struct HotkeyHintsView: View {
             hint(key: newTaskShortcut, label: "new task")
             Spacer()
         }
-        .font(.system(size: 11))
+        .font(.system(size: Theme.Font.caption))
         .foregroundStyle(.secondary)
     }
 

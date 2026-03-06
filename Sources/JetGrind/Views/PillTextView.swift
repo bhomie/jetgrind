@@ -122,7 +122,7 @@ struct PillTextView: NSViewRepresentable {
     @Binding var links: [LinkItem]
     var isEditable: Bool
     var isSingleLine: Bool
-    var font: NSFont = .systemFont(ofSize: Theme.Font.titleMedium, weight: .medium)
+    var font: NSFont = .systemFont(ofSize: Theme.Font.title, weight: .medium)
     var textColor: NSColor = .labelColor
     var placeholderText: String?
     var onCommit: (() -> Void)?
