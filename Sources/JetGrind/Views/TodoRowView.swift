@@ -184,7 +184,7 @@ struct TodoRowView: View {
                 return .handled
             }
             if isKeyboardFocused {
-                focus.wrappedValue = .actionEdit(item.id)
+                focus.wrappedValue = .actionComplete(item.id)
                 return .handled
             }
             return .ignored
@@ -211,6 +211,11 @@ struct TodoRowView: View {
         .onKeyPress(.return) {
             guard !isEditing, !isInActionMode else { return .ignored }
             handleToggle()
+            return .handled
+        }
+        .onKeyPress(characters: CharacterSet(charactersIn: "eE")) { _ in
+            guard !isEditing, !isInActionMode, !item.isCompleted else { return .ignored }
+            startEditing()
             return .handled
         }
         .onKeyPress(.escape) {
@@ -400,9 +405,9 @@ struct TodoRowView: View {
     private var actionArea: some View {
         let visible = isActive || isInActionMode
         return HStack(spacing: isInActionMode ? Theme.Size.actionButtonSpacing : 6) {
-            unifiedActionButton(icon: "pencil", label: "Edit", focusCase: .actionEdit(item.id), action: startEditing)
+            unifiedActionButton(icon: "checkmark", label: "Complete", focusCase: .actionComplete(item.id), action: handleToggle)
                 .onKeyPress(.return) {
-                    startEditing()
+                    handleToggle()
                     return .handled
                 }
                 .scaleEffect(isEditing ? 0.01 : 1)
@@ -410,9 +415,9 @@ struct TodoRowView: View {
                 .frame(width: isEditing ? 0 : nil)
                 .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
-            unifiedActionButton(icon: "checkmark", label: "Complete", focusCase: .actionComplete(item.id), action: handleToggle)
+            unifiedActionButton(icon: "pencil", label: "Edit", focusCase: .actionEdit(item.id), action: startEditing)
                 .onKeyPress(.return) {
-                    handleToggle()
+                    startEditing()
                     return .handled
                 }
                 .scaleEffect(isEditing ? 0.01 : 1)

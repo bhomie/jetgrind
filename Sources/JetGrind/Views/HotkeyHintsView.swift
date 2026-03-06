@@ -8,6 +8,8 @@ struct HotkeyHintsView: View {
             Spacer()
             hint(systemImage: "return.left", label: "complete")
             Spacer()
+            hint(key: "E", label: "edit")
+            Spacer()
             hint(systemImage: "delete.left", label: "delete")
             Spacer()
             hint(key: newTaskShortcut, label: "new task")

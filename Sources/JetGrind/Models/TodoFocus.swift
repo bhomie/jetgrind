@@ -21,8 +21,8 @@ enum TodoFocus: Hashable {
 
     var actionIndex: Int? {
         switch self {
-        case .actionEdit: return 0
-        case .actionComplete: return 1
+        case .actionComplete: return 0
+        case .actionEdit: return 1
         case .actionDelete: return 2
         default: return nil
         }
@@ -30,10 +30,10 @@ enum TodoFocus: Hashable {
 
     static func action(index: Int, taskId: UUID) -> TodoFocus {
         switch index {
-        case 0: return .actionEdit(taskId)
-        case 1: return .actionComplete(taskId)
+        case 0: return .actionComplete(taskId)
+        case 1: return .actionEdit(taskId)
         case 2: return .actionDelete(taskId)
-        default: return .actionEdit(taskId)
+        default: return .actionComplete(taskId)
         }
     }
 }
