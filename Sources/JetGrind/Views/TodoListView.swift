@@ -180,6 +180,9 @@ struct TodoListView: View {
         .onReceive(NotificationCenter.default.publisher(for: .focusTaskInput)) { _ in
             focus = .input
         }
+        .onReceive(NotificationCenter.default.publisher(for: .popoverDidClose)) { _ in
+            focus = .input
+        }
         .onChange(of: store.items.isEmpty) { _, isEmpty in
             if isEmpty {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85).delay(0.1)) {

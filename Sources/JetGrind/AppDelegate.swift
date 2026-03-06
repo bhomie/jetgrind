@@ -4,6 +4,7 @@ import HotKey
 
 extension Notification.Name {
     static let focusTaskInput = Notification.Name("focusTaskInput")
+    static let popoverDidClose = Notification.Name("popoverDidClose")
 }
 
 @MainActor
@@ -47,6 +48,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover = NSPopover()
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: TodoListView(store: store, settingsStore: settingsStore))
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(popoverDidClose),
+            name: NSPopover.didCloseNotification,
+            object: popover
+        )
+    }
+
+    @objc private func popoverDidClose() {
+        NotificationCenter.default.post(name: .popoverDidClose, object: nil)
     }
 
     private func setupHotKey() {
