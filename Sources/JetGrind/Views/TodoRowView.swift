@@ -91,11 +91,9 @@ struct TodoRowView: View {
                         .allowsHitTesting(isEditing)
                 }
                 .padding(.leading, 6)
-                Spacer()
-                actionArea
+                Spacer(minLength: 4)
+                trailingArea
             }
-
-            timestampView
 
             // Expanded content: description + inline pills
             if isExpanded || isEditing {
@@ -403,15 +401,13 @@ struct TodoRowView: View {
     }
 
     private var actionArea: some View {
-        let visible = isActive || isInActionMode
-        return HStack(spacing: isInActionMode ? Theme.Size.actionButtonSpacing : 6) {
+        HStack(spacing: isInActionMode ? Theme.Size.actionButtonSpacing : 6) {
             unifiedActionButton(icon: "checkmark", label: "Complete", focusCase: .actionComplete(item.id), action: handleToggle)
                 .onKeyPress(.return) {
                     handleToggle()
                     return .handled
                 }
                 .scaleEffect(isEditing ? 0.01 : 1)
-                .opacity(isEditing ? 0 : 1)
                 .frame(width: isEditing ? 0 : nil)
                 .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
@@ -421,7 +417,6 @@ struct TodoRowView: View {
                     return .handled
                 }
                 .scaleEffect(isEditing ? 0.01 : 1)
-                .opacity(isEditing ? 0 : 1)
                 .frame(width: isEditing ? 0 : nil)
                 .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
@@ -432,11 +427,6 @@ struct TodoRowView: View {
                     return .handled
                 }
         }
-        .padding(.leading, visible ? 8 : 0)
-        .opacity(visible ? 1 : 0)
-        .offset(x: visible ? 0 : 60)
-        .frame(width: visible ? nil : 0)
-        .animation(.spring(response: 0.35, dampingFraction: 0.75), value: visible)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
         .animation(.spring(response: 0.25, dampingFraction: 0.85), value: focus.wrappedValue)
     }
@@ -477,19 +467,29 @@ struct TodoRowView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
     }
 
-    private var timestampView: some View {
-        Text(item.createdAt.relativeFormat)
-            .font(.system(size: Theme.Font.body))
-            .foregroundStyle(.secondary)
-            .opacity(showTimestamp && !isCompleting ? 1 : 0)
-            .blur(radius: isCompleting ? 8 : (showTimestamp ? 0 : 8))
-            .animation(.spring(response: 0.25, dampingFraction: 0.85), value: isCompleting)
-            .animation(.spring(response: 0.3, dampingFraction: 0.85), value: showTimestamp)
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    showTimestamp = true
+    private var trailingArea: some View {
+        ZStack(alignment: .trailing) {
+            // Date pill — visible when row is inactive
+            Text(item.createdAt.relativeFormat)
+                .font(.system(size: Theme.Font.body))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .fixedSize()
+                .blur(radius: isActive ? 4 : (showTimestamp ? 0 : 4))
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isActive)
+                .animation(.spring(response: 0.3, dampingFraction: 0.85), value: showTimestamp)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        showTimestamp = true
+                    }
                 }
-            }
+
+            // Action buttons — visible when row is active
+            actionArea
+                .blur(radius: isActive || isInActionMode ? 0 : 4)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isActive || isInActionMode)
+        }
+        .fixedSize()
     }
 
     private func cycleEmoji() {
