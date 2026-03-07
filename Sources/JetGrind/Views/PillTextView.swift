@@ -10,8 +10,23 @@ final class PillNSTextView: NSTextView {
     var onNavigateUp: (() -> Void)?
     var onNavigateDown: (() -> Void)?
     var onFocusChange: ((Bool) -> Void)?
+    var placeholderString: String?
+    var placeholderColor: NSColor = .placeholderTextColor
 
     override var acceptsFirstResponder: Bool { true }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        if string.isEmpty, let placeholder = placeholderString {
+            let attrs: [NSAttributedString.Key: Any] = [
+                .foregroundColor: placeholderColor,
+                .font: font ?? NSFont.systemFont(ofSize: NSFont.systemFontSize)
+            ]
+            let inset = textContainerInset
+            let rect = NSRect(x: inset.width, y: inset.height, width: bounds.width - inset.width * 2, height: bounds.height - inset.height * 2)
+            NSAttributedString(string: placeholder, attributes: attrs).draw(in: rect)
+        }
+    }
 
     override func becomeFirstResponder() -> Bool {
         let result = super.becomeFirstResponder()
@@ -164,6 +179,7 @@ struct PillTextView: NSViewRepresentable {
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.allowsUndo = true
         textView.textContainerInset = NSSize(width: 0, height: 0)
+        textView.placeholderString = placeholderText
 
         textView.onCommit = onCommit
         textView.onCancel = onCancel

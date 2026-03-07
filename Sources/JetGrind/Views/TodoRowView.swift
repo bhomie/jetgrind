@@ -333,7 +333,7 @@ struct TodoRowView: View {
                     isEditable: true,
                     isSingleLine: false,
                     font: .systemFont(ofSize: Theme.Font.body),
-                    textColor: NSColor.labelColor.withAlphaComponent(Theme.Opacity.descriptionText),
+                    textColor: NSColor.labelColor,
                     placeholderText: "Add description...",
                     onCommit: { commitEdit() },
                     onCancel: { cancelEdit() },
@@ -353,7 +353,7 @@ struct TodoRowView: View {
                         isEditable: false,
                         isSingleLine: false,
                         font: .systemFont(ofSize: Theme.Font.body),
-                        textColor: NSColor.labelColor.withAlphaComponent(Theme.Opacity.descriptionText),
+                        textColor: NSColor.labelColor,
                         isFocused: .constant(false),
                         height: $readOnlyDescriptionHeight
                     )
@@ -361,7 +361,7 @@ struct TodoRowView: View {
                 } else {
                     Text(description)
                         .font(.system(size: Theme.Font.body))
-                        .foregroundStyle(.primary.opacity(Theme.Opacity.descriptionText))
+                        .foregroundStyle(.primary)
                         .lineLimit(isExpanded ? nil : 2)
                 }
             }
