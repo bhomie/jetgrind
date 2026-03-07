@@ -35,6 +35,8 @@ struct TodoRowView: View {
     @State private var emojiBlur: CGFloat = 0.0
     @State private var visualActionIndex: Int? = nil
 
+    private let opacityAnimation: Animation = .linear(duration: 0.15)
+
     private var pastelColor: Color {
         Theme.Pastel.color(for: rowIndex)
     }
@@ -87,8 +89,10 @@ struct TodoRowView: View {
                 ZStack(alignment: .leading) {
                     titleView
                         .opacity(isEditing ? 0 : 1)
+                        .animation(opacityAnimation, value: isEditing)
                     inlineEditField
                         .opacity(isEditing ? 1 : 0)
+                        .animation(opacityAnimation, value: isEditing)
                         .allowsHitTesting(isEditing)
                 }
                 .padding(.leading, 6)
@@ -128,7 +132,7 @@ struct TodoRowView: View {
         }
         .onTapGesture {
             if hasExpandedContent {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(Theme.Anim.fanOut) {
                     if isExpanded {
                         isExpanded = false
                     } else {
@@ -293,8 +297,8 @@ struct TodoRowView: View {
             .contentTransition(.opacity)
             .blur(radius: (isCompleting || isAppearing) ? 8 : 0)
             .opacity((isCompleting || isAppearing) ? 0 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
-            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isAppearing)
+            .animation(opacityAnimation, value: isCompleting)
+            .animation(opacityAnimation, value: isAppearing)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         } else {
             Text(item.title)
@@ -305,8 +309,8 @@ struct TodoRowView: View {
                 .contentTransition(.opacity)
                 .blur(radius: (isCompleting || isAppearing) ? 8 : 0)
                 .opacity((isCompleting || isAppearing) ? 0 : 1)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCompleting)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isAppearing)
+                .animation(opacityAnimation, value: isCompleting)
+                .animation(opacityAnimation, value: isAppearing)
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
         }
     }
@@ -423,7 +427,7 @@ struct TodoRowView: View {
                 .frame(width: isEditing ? 0 : nil)
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
                 .offset(x: fanned ? 0 : 64)
-                .animation(.spring(response: 0.35, dampingFraction: 0.7), value: fanned)
+                .animation(Theme.Anim.fanOut, value: fanned)
             unifiedActionButton(icon: "pencil", label: "Edit", focusCase: .actionEdit(item.id), buttonIndex: 1, action: startEditing)
                 .onKeyPress(.return) {
                     startEditing()
@@ -433,14 +437,14 @@ struct TodoRowView: View {
                 .frame(width: isEditing ? 0 : nil)
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
                 .offset(x: fanned ? 0 : 32)
-                .animation(.spring(response: 0.30, dampingFraction: 0.7), value: fanned)
+                .animation(Theme.Anim.fanOut, value: fanned)
             unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), buttonIndex: 2, action: { moveFocusToNeighbor(); onDelete() })
                 .onKeyPress(.return) {
                     moveFocusToNeighbor()
                     onDelete()
                     return .handled
                 }
-                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: fanned)
+                .animation(Theme.Anim.fanOut, value: fanned)
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
     }
@@ -456,14 +460,24 @@ struct TodoRowView: View {
                     .fixedSize(horizontal: true, vertical: false)
                     .transition(.push(from: .leading))
                     .scaleEffect(isVisuallyFocused ? 1 : 0, anchor: .leading)
+                    .blur(radius: isVisuallyFocused ? 0 : 4)
                     .opacity(isVisuallyFocused ? 1 : 0)
+                    .animation(opacityAnimation, value: isVisuallyFocused)
                     .frame(width: isVisuallyFocused ? nil : 0, alignment: .leading)
             }
             .foregroundStyle(isInActionMode && isVisuallyFocused ? .primary : .secondary)
-            .padding(.horizontal, isVisuallyFocused ? 10 : (isInActionMode ? 6 : 4))
-            .padding(.vertical, isInActionMode ? 5 : 2)
-            .frame(height: Theme.Size.actionButtonSize)
+            .padding(.horizontal, isVisuallyFocused ? 10 : 0)
+            .frame(width: isVisuallyFocused ? nil : Theme.Size.actionButtonSize, height: Theme.Size.actionButtonSize)
             .background {
+                Circle()
+                    .fill(pastelColor.opacity(isInActionMode ? pastelOpacity : 0))
+                    .blendMode(.plusDarker)
+                    .overlay {
+                        Circle()
+                            .fill(.black.opacity(isInActionMode ? 0.1 : 0))
+                    }
+                    .opacity(isVisuallyFocused ? 0 : 1)
+                    .animation(opacityAnimation, value: isVisuallyFocused)
                 Capsule()
                     .fill(pastelColor.opacity(isInActionMode ? pastelOpacity : 0))
                     .blendMode(.plusDarker)
@@ -471,6 +485,8 @@ struct TodoRowView: View {
                         Capsule()
                             .fill(.black.opacity(isInActionMode ? 0.1 : 0))
                     }
+                    .opacity(isVisuallyFocused ? 1 : 0)
+                    .animation(opacityAnimation, value: isVisuallyFocused)
             }
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
         }
@@ -491,8 +507,8 @@ struct TodoRowView: View {
                 .scaleEffect(isActive ? 0.6 : (showTimestamp ? 1.0 : 0.6), anchor: .trailing)
                 .blur(radius: isActive ? 4 : (showTimestamp ? 0 : 4))
                 .opacity(isActive ? 0 : (showTimestamp ? 1 : 0))
-                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
-                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showTimestamp)
+                .animation(opacityAnimation, value: isActive)
+                .animation(opacityAnimation, value: showTimestamp)
                 .onAppear {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         showTimestamp = true
@@ -504,7 +520,7 @@ struct TodoRowView: View {
                 .scaleEffect(isActive || isInActionMode ? 1.0 : 0.6, anchor: .trailing)
                 .blur(radius: isActive || isInActionMode ? 0 : 4)
                 .opacity(isActive || isInActionMode ? 1 : 0)
-                .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isActive || isInActionMode)
+                .animation(opacityAnimation, value: isActive || isInActionMode)
         }
     }
 

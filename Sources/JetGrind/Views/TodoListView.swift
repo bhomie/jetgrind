@@ -164,13 +164,13 @@ struct TodoListView: View {
         .onChange(of: focus) { _, newFocus in
             switch newFocus {
             case .input:
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(Theme.Anim.fanOut) {
                     expandedTaskId = nil
                 }
             case .task(let id):
                 let item = store.items.first { $0.id == id }
                 let hasContent = item?.description != nil || !(item?.links.isEmpty ?? true)
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(Theme.Anim.fanOut) {
                     expandedTaskId = hasContent ? id : nil
                 }
             default:
@@ -242,12 +242,12 @@ struct TodoListView: View {
             isExpanded: expandedBinding,
             isEditBlurred: editingTaskId != nil && editingTaskId != item.id,
             onExpand: {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(Theme.Anim.fanOut) {
                     expandedTaskId = item.id
                 }
             },
             onEditingChanged: { isEditing in
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(Theme.Anim.fanOut) {
                     editingTaskId = isEditing ? item.id : nil
                 }
             },
@@ -280,11 +280,15 @@ struct TodoListView: View {
                     .opacity(showEmptyState ? 1.0 : 0)
                     .blur(radius: showEmptyState ? 0 : 4)
 
-                Text("Type something above to begin")
-                    .font(.system(size: Theme.Font.caption))
-                    .foregroundStyle(.tertiary)
-                    .opacity(showEmptyState ? 1.0 : 0)
-                    .blur(radius: showEmptyState ? 0 : 4)
+                HStack(spacing: 3) {
+                    Text(settingsStore.displayString)
+                        .fontWeight(.medium)
+                    Text("new task")
+                }
+                .font(.system(size: Theme.Font.caption))
+                .foregroundStyle(.secondary)
+                .opacity(showEmptyState ? 1.0 : 0)
+                .blur(radius: showEmptyState ? 0 : 4)
             }
         }
         .frame(maxHeight: .infinity)

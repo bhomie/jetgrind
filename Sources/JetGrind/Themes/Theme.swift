@@ -69,6 +69,12 @@ enum Theme {
         static let inlinePillFontSize: CGFloat = 11
     }
 
+    // MARK: - Animations
+
+    enum Anim {
+        static let fanOut: Animation = .spring(response: 0.35, dampingFraction: 0.7)
+    }
+
     // MARK: - Semantic colors
 
     enum Color {
