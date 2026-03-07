@@ -43,7 +43,7 @@ struct TodoRowView: View {
     }
 
     private var isActive: Bool {
-        !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id))
+        !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id) || isInActionMode)
     }
 
     private var isKeyboardFocused: Bool {
@@ -103,8 +103,7 @@ struct TodoRowView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
+        .padding(.vertical, 14)
         .background {
             RoundedRectangle(cornerRadius: 12)
                 .fill(pastelColor.opacity(isHighlighted ? pastelOpacity * 3 : pastelOpacity))
@@ -401,7 +400,8 @@ struct TodoRowView: View {
     }
 
     private var actionArea: some View {
-        HStack(spacing: isInActionMode ? Theme.Size.actionButtonSpacing : 6) {
+        let fanned = isActive || isInActionMode
+        return HStack(spacing: isInActionMode ? Theme.Size.actionButtonSpacing : 6) {
             unifiedActionButton(icon: "checkmark", label: "Complete", focusCase: .actionComplete(item.id), action: handleToggle)
                 .onKeyPress(.return) {
                     handleToggle()
@@ -411,6 +411,8 @@ struct TodoRowView: View {
                 .frame(width: isEditing ? 0 : nil)
                 .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
+                .offset(x: fanned ? 0 : 64)
+                .animation(.spring(response: 0.35, dampingFraction: 0.7), value: fanned)
             unifiedActionButton(icon: "pencil", label: "Edit", focusCase: .actionEdit(item.id), action: startEditing)
                 .onKeyPress(.return) {
                     startEditing()
@@ -420,15 +422,17 @@ struct TodoRowView: View {
                 .frame(width: isEditing ? 0 : nil)
                 .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
+                .offset(x: fanned ? 0 : 32)
+                .animation(.spring(response: 0.30, dampingFraction: 0.7), value: fanned)
             unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), action: { moveFocusToNeighbor(); onDelete() })
                 .onKeyPress(.return) {
                     moveFocusToNeighbor()
                     onDelete()
                     return .handled
                 }
+                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: fanned)
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
-        .animation(.spring(response: 0.25, dampingFraction: 0.85), value: focus.wrappedValue)
     }
 
     private func unifiedActionButton(icon: String, label: String, focusCase: TodoFocus, action: @escaping () -> Void) -> some View {
@@ -475,9 +479,11 @@ struct TodoRowView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .fixedSize()
+                .scaleEffect(isActive ? 0.6 : (showTimestamp ? 1.0 : 0.6), anchor: .trailing)
                 .blur(radius: isActive ? 4 : (showTimestamp ? 0 : 4))
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isActive)
-                .animation(.spring(response: 0.3, dampingFraction: 0.85), value: showTimestamp)
+                .opacity(isActive ? 0 : (showTimestamp ? 1 : 0))
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showTimestamp)
                 .onAppear {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         showTimestamp = true
@@ -486,8 +492,10 @@ struct TodoRowView: View {
 
             // Action buttons — visible when row is active
             actionArea
+                .scaleEffect(isActive || isInActionMode ? 1.0 : 0.6, anchor: .trailing)
                 .blur(radius: isActive || isInActionMode ? 0 : 4)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isActive || isInActionMode)
+                .opacity(isActive || isInActionMode ? 1 : 0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isActive || isInActionMode)
         }
         .fixedSize()
     }
