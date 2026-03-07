@@ -33,6 +33,7 @@ struct TodoRowView: View {
     @State private var showParticleBurst = false
     @State private var emojiScale: CGFloat = 1.0
     @State private var emojiBlur: CGFloat = 0.0
+    @State private var visualActionIndex: Int? = nil
 
     private var pastelColor: Color {
         Theme.Pastel.color(for: rowIndex)
@@ -139,6 +140,18 @@ struct TodoRowView: View {
         .focusable()
         .focused(focus, equals: .task(item.id))
         .focusEffectDisabled()
+        .onChange(of: focus.wrappedValue) { _, newFocus in
+            let idx: Int?
+            switch newFocus {
+            case .actionComplete(let id) where id == item.id: idx = 0
+            case .actionEdit(let id) where id == item.id: idx = 1
+            case .actionDelete(let id) where id == item.id: idx = 2
+            default: idx = nil
+            }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                visualActionIndex = idx
+            }
+        }
         .onKeyPress(.upArrow) {
             guard !isEditing else { return .ignored }
             if isInActionMode {
@@ -401,7 +414,7 @@ struct TodoRowView: View {
     private var actionArea: some View {
         let fanned = isActive || isInActionMode
         return HStack(spacing: isInActionMode ? Theme.Size.actionButtonSpacing : 6) {
-            unifiedActionButton(icon: "checkmark", label: "Complete", focusCase: .actionComplete(item.id), action: handleToggle)
+            unifiedActionButton(icon: "checkmark", label: "Complete", focusCase: .actionComplete(item.id), buttonIndex: 0, action: handleToggle)
                 .onKeyPress(.return) {
                     handleToggle()
                     return .handled
@@ -411,7 +424,7 @@ struct TodoRowView: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
                 .offset(x: fanned ? 0 : 64)
                 .animation(.spring(response: 0.35, dampingFraction: 0.7), value: fanned)
-            unifiedActionButton(icon: "pencil", label: "Edit", focusCase: .actionEdit(item.id), action: startEditing)
+            unifiedActionButton(icon: "pencil", label: "Edit", focusCase: .actionEdit(item.id), buttonIndex: 1, action: startEditing)
                 .onKeyPress(.return) {
                     startEditing()
                     return .handled
@@ -421,7 +434,7 @@ struct TodoRowView: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
                 .offset(x: fanned ? 0 : 32)
                 .animation(.spring(response: 0.30, dampingFraction: 0.7), value: fanned)
-            unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), action: { moveFocusToNeighbor(); onDelete() })
+            unifiedActionButton(icon: "trash", label: "Delete", focusCase: .actionDelete(item.id), buttonIndex: 2, action: { moveFocusToNeighbor(); onDelete() })
                 .onKeyPress(.return) {
                     moveFocusToNeighbor()
                     onDelete()
@@ -432,22 +445,22 @@ struct TodoRowView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
     }
 
-    private func unifiedActionButton(icon: String, label: String, focusCase: TodoFocus, action: @escaping () -> Void) -> some View {
-        let isFocused = focus.wrappedValue == focusCase
+    private func unifiedActionButton(icon: String, label: String, focusCase: TodoFocus, buttonIndex: Int, action: @escaping () -> Void) -> some View {
+        let isVisuallyFocused = visualActionIndex == buttonIndex
         return Button(action: action) {
-            HStack(spacing: isFocused ? 4 : 0) {
+            HStack(spacing: isVisuallyFocused ? 4 : 0) {
                 Image(systemName: icon)
                     .font(.system(size: Theme.Font.body))
                 Text(label)
                     .font(.system(size: Theme.Font.caption, weight: .medium))
                     .fixedSize(horizontal: true, vertical: false)
                     .transition(.push(from: .leading))
-                    .scaleEffect(isFocused ? 1 : 0, anchor: .leading)
-                    .opacity(isFocused ? 1 : 0)
-                    .frame(width: isFocused ? nil : 0, alignment: .leading)
+                    .scaleEffect(isVisuallyFocused ? 1 : 0, anchor: .leading)
+                    .opacity(isVisuallyFocused ? 1 : 0)
+                    .frame(width: isVisuallyFocused ? nil : 0, alignment: .leading)
             }
-            .foregroundStyle(isInActionMode && isFocused ? .primary : .secondary)
-            .padding(.horizontal, isFocused ? 10 : (isInActionMode ? 6 : 4))
+            .foregroundStyle(isInActionMode && isVisuallyFocused ? .primary : .secondary)
+            .padding(.horizontal, isVisuallyFocused ? 10 : (isInActionMode ? 6 : 4))
             .padding(.vertical, isInActionMode ? 5 : 2)
             .frame(height: Theme.Size.actionButtonSize)
             .background {
@@ -459,13 +472,12 @@ struct TodoRowView: View {
                             .fill(.black.opacity(isInActionMode ? 0.1 : 0))
                     }
             }
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
         }
         .buttonStyle(.plain)
         .focusable()
         .focused(focus, equals: focusCase)
         .focusEffectDisabled()
-        .animation(.spring(response: 0.25, dampingFraction: 0.85), value: isFocused)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
     }
 
     private var trailingArea: some View {
