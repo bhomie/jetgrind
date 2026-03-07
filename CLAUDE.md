@@ -19,6 +19,10 @@ Data flows through a single `TodoStore` instance passed from app to views via `@
 
 **Key capture in MenuBarExtra apps**: `NSViewRepresentable` with `keyDown:` doesn't work—SwiftUI's Form steals first responder, and `performKeyEquivalent:` preempts `keyDown:` for modifier combos. `NSApp.activate` is ignored because `MenuBarExtra` sets `.accessory` activation policy. Fix: use `NSEvent.addLocalMonitorForEvents(matching: .keyDown)` with a local-only monitor. Temporarily switch to `.regular` activation policy before `NSApp.activate(ignoringOtherApps: true)`, then revert to `.accessory` when done. This pulls focus so the local monitor receives and consumes keystrokes. See `HotKeyRecorderView.swift`.
 
+## Debugging
+
+**Start from the difference**: When a bug affects some items but not others (e.g., 2 of 3 buttons clip but the third doesn't), compare the affected vs unaffected items directly. The fix is in what differs between them, not in shared ancestors.
+
 ## Communication
 
 Keep summaries very succinct.

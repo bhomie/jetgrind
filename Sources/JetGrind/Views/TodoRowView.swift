@@ -108,7 +108,6 @@ struct TodoRowView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(pastelColor.opacity(isHighlighted ? pastelOpacity * 3 : pastelOpacity))
         }
-        .clipShape(RoundedRectangle(cornerRadius: 12))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
         .blur(radius: isEditBlurred ? Theme.Size.editBlurRadius : 0)
@@ -409,7 +408,6 @@ struct TodoRowView: View {
                 }
                 .scaleEffect(isEditing ? 0.01 : 1)
                 .frame(width: isEditing ? 0 : nil)
-                .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
                 .offset(x: fanned ? 0 : 64)
                 .animation(.spring(response: 0.35, dampingFraction: 0.7), value: fanned)
@@ -420,7 +418,6 @@ struct TodoRowView: View {
                 }
                 .scaleEffect(isEditing ? 0.01 : 1)
                 .frame(width: isEditing ? 0 : nil)
-                .clipped()
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditing)
                 .offset(x: fanned ? 0 : 32)
                 .animation(.spring(response: 0.30, dampingFraction: 0.7), value: fanned)
@@ -445,9 +442,9 @@ struct TodoRowView: View {
                     .font(.system(size: Theme.Font.caption, weight: .medium))
                     .fixedSize(horizontal: true, vertical: false)
                     .transition(.push(from: .leading))
+                    .scaleEffect(isFocused ? 1 : 0, anchor: .leading)
                     .opacity(isFocused ? 1 : 0)
                     .frame(width: isFocused ? nil : 0, alignment: .leading)
-                    .clipped()
             }
             .foregroundStyle(isInActionMode && isFocused ? .primary : .secondary)
             .padding(.horizontal, isFocused ? 10 : (isInActionMode ? 6 : 4))
@@ -497,7 +494,6 @@ struct TodoRowView: View {
                 .opacity(isActive || isInActionMode ? 1 : 0)
                 .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isActive || isInActionMode)
         }
-        .fixedSize()
     }
 
     private func cycleEmoji() {
