@@ -17,6 +17,7 @@ struct HotkeyHintsView: View {
         }
         .font(.system(size: Theme.Font.caption))
         .foregroundStyle(.secondary)
+        .padding(.bottom, 8)
     }
 
     private func hint(key: String, label: String) -> some View {
