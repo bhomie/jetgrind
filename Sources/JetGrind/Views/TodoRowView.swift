@@ -113,6 +113,7 @@ struct TodoRowView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(pastelColor.opacity(isHighlighted ? pastelOpacity * 3 : pastelOpacity))
         }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
         .blur(radius: isEditBlurred ? Theme.Size.editBlurRadius : 0)
@@ -520,6 +521,7 @@ struct TodoRowView: View {
                 .scaleEffect(isActive || isInActionMode ? 1.0 : 0.6, anchor: .trailing)
                 .blur(radius: isActive || isInActionMode ? 0 : 4)
                 .opacity(isActive || isInActionMode ? 1 : 0)
+                .frame(width: isActive || isInActionMode ? nil : 0)
                 .animation(opacityAnimation, value: isActive || isInActionMode)
         }
     }
