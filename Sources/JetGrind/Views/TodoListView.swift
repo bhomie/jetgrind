@@ -24,6 +24,8 @@ struct TodoListView: View {
     }
 
     var body: some View {
+        let incompleteItems = incompleteItems
+        let completedItems = completedItems
         GlassEffectContainer {
             VStack(spacing: 0) {
                 AddTodoView(
@@ -124,14 +126,15 @@ struct TodoListView: View {
                     .allowsHitTesting(!showCompletedView)
 
                     // Completed tab content
-                    CompletedTabView(
-                        store: store,
-                        focus: $focus,
-                        onDismiss: { dismissCompletedView() },
-                        onDismissToTask: { taskId in dismissCompletedView(focusTaskId: taskId) }
-                    )
-                    .opacity(showCompletedView ? 1 : 0)
-                    .allowsHitTesting(showCompletedView)
+                    if showCompletedView {
+                        CompletedTabView(
+                            store: store,
+                            focus: $focus,
+                            onDismiss: { dismissCompletedView() },
+                            onDismissToTask: { taskId in dismissCompletedView(focusTaskId: taskId) }
+                        )
+                        .transition(.opacity.combined(with: .blurReplace))
+                    }
                 }
                 .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showCompletedView)
 
@@ -211,10 +214,10 @@ struct TodoListView: View {
     @ViewBuilder
     private func todoRow(item: TodoItem, previousTaskId: UUID?, nextTaskId: UUID?, rowIndex: Int = 0) -> some View {
         let itemBinding = Binding(
-            get: { store.items.first { $0.id == item.id } ?? item },
+            get: { store.items.indices.contains(rowIndex) ? store.items[rowIndex] : item },
             set: { newValue in
-                if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                    store.items[idx] = newValue
+                if store.items.indices.contains(rowIndex) {
+                    store.items[rowIndex] = newValue
                 }
             }
         )

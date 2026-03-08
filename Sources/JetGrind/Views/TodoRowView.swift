@@ -1,5 +1,15 @@
 import SwiftUI
 
+private struct DimState: Equatable {
+    let isCompleted: Bool
+    let isEditBlurred: Bool
+}
+
+private struct LayoutState: Equatable {
+    let isFocusedOrExpanded: Bool
+    let isInActionMode: Bool
+}
+
 struct TodoRowView: View {
     @Binding var item: TodoItem
     let store: TodoStore
@@ -117,10 +127,8 @@ struct TodoRowView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHighlighted)
         .opacity(item.isCompleted ? Theme.Opacity.completedRow : (isEditBlurred ? Theme.Opacity.editDimOpacity : 1.0))
         .blur(radius: isEditBlurred ? Theme.Size.editBlurRadius : 0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.isCompleted)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isEditBlurred)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isKeyboardFocused || isExpanded)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isInActionMode)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: DimState(isCompleted: item.isCompleted, isEditBlurred: isEditBlurred))
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: LayoutState(isFocusedOrExpanded: isKeyboardFocused || isExpanded, isInActionMode: isInActionMode))
         .onAppear {
             DispatchQueue.main.async {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {

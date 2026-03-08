@@ -70,11 +70,24 @@ enum EmojiMatcher {
     }
 }
 
+private let precompiledKeywordPatterns: [String: NSRegularExpression] = {
+    var dict = [String: NSRegularExpression]()
+    for category in EmojiMatcher.categories {
+        for keyword in category.keywords where dict[keyword] == nil {
+            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: keyword))\\b"
+            // swiftlint:disable:next force_try
+            dict[keyword] = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        }
+    }
+    return dict
+}()
+
 private extension String {
     /// Checks if the string contains the given word, matching at word boundaries (case-insensitive).
     /// Supports multi-word keywords like "catch up".
     func containsWord(_ word: String) -> Bool {
-        let pattern = "\\b\(NSRegularExpression.escapedPattern(for: word))\\b"
-        return range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
+        guard let regex = precompiledKeywordPatterns[word] else { return false }
+        let range = NSRange(startIndex..., in: self)
+        return regex.firstMatch(in: self, range: range) != nil
     }
 }

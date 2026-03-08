@@ -21,6 +21,7 @@ struct HotKeyRecorderView: View {
                 .foregroundStyle(isRecording ? .secondary : .primary)
                 .frame(maxHeight: .infinity, alignment: .center)
         }
+        .onDisappear { stopRecording() }
     }
 
     private func startRecording() {
@@ -49,7 +50,13 @@ struct HotKeyRecorderView: View {
 
 @MainActor
 private final class KeyEventMonitor {
-    private var monitor: Any?
+    nonisolated(unsafe) private var monitor: Any?
+
+    deinit {
+        if let monitor {
+            NSEvent.removeMonitor(monitor)
+        }
+    }
 
     func start(onCapture: @escaping (UInt32, UInt32) -> Void, onCancel: @escaping () -> Void) {
         stop()

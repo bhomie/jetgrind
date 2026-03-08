@@ -98,7 +98,7 @@ enum Theme {
         private static let all: [SwiftUI.Color] = [lavender, peach, mint, sky, butter, rose]
 
         static func color(for index: Int) -> SwiftUI.Color {
-            all[index % all.count]
+            all[((index % all.count) + all.count) % all.count]
         }
     }
 }

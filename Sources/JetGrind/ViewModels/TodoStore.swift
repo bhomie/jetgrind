@@ -28,13 +28,15 @@ final class TodoStore {
         // Fire-and-forget async fetches
         let itemId = item.id
         if isSingleURL, let url = result.links.first?.url {
+            let originalTitle = item.title
             Task {
-                await self.fetchPageTitleForItem(id: itemId, url: url)
+                await self.fetchPageTitleForItem(id: itemId, url: url, originalTitle: originalTitle)
             }
         }
-        for (linkIndex, link) in result.links.enumerated() {
+        for link in result.links {
+            let linkId = link.id
             Task {
-                await self.fetchFaviconForLink(itemId: itemId, linkIndex: linkIndex, url: link.url)
+                await self.fetchFaviconForLink(itemId: itemId, linkId: linkId, url: link.url)
             }
         }
     }
@@ -103,9 +105,10 @@ final class TodoStore {
 
         // Fetch favicons for any new links missing data
         let itemId = items[index].id
-        for (linkIndex, link) in links.enumerated() where link.faviconData == nil {
+        for link in links where link.faviconData == nil {
+            let linkId = link.id
             Task {
-                await self.fetchFaviconForLink(itemId: itemId, linkIndex: linkIndex, url: link.url)
+                await self.fetchFaviconForLink(itemId: itemId, linkId: linkId, url: link.url)
             }
         }
     }
@@ -169,9 +172,9 @@ final class TodoStore {
                 synced.append(link)
                 // Fetch favicon for new link
                 let itemId = items[index].id
-                let linkIndex = synced.count - 1
+                let linkId = link.id
                 Task {
-                    await self.fetchFaviconForLink(itemId: itemId, linkIndex: linkIndex, url: url)
+                    await self.fetchFaviconForLink(itemId: itemId, linkId: linkId, url: url)
                 }
             }
         }
@@ -180,18 +183,18 @@ final class TodoStore {
 
     // MARK: - Metadata Fetching
 
-    private func fetchPageTitleForItem(id: UUID, url: URL) async {
+    private func fetchPageTitleForItem(id: UUID, url: URL, originalTitle: String) async {
         guard let title = await LinkMetadataFetcher.shared.fetchPageTitle(for: url) else { return }
-        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        guard let index = items.firstIndex(where: { $0.id == id }),
+              items[index].title == originalTitle else { return }
         items[index].title = title
         save()
     }
 
-    private func fetchFaviconForLink(itemId: UUID, linkIndex: Int, url: URL) async {
+    private func fetchFaviconForLink(itemId: UUID, linkId: UUID, url: URL) async {
         guard let data = await LinkMetadataFetcher.shared.fetchFavicon(for: url) else { return }
         guard let itemIndex = items.firstIndex(where: { $0.id == itemId }),
-              linkIndex < items[itemIndex].links.count,
-              items[itemIndex].links[linkIndex].url == url else { return }
+              let linkIndex = items[itemIndex].links.firstIndex(where: { $0.id == linkId }) else { return }
         items[itemIndex].links[linkIndex].faviconData = data
         save()
     }
