@@ -83,6 +83,9 @@ struct AddTodoView: View {
             Button(action: {
                 if showCompletedView {
                     onCloseCompleted()
+                } else if hasValidText {
+                    onAdd(title)
+                    title = ""
                 }
             }) {
                 Image(systemName: "plus.circle.fill")
