@@ -142,7 +142,7 @@ struct TodoListView: View {
             }
             .overlay(alignment: .bottom) {
                 if settingsStore.showShortcutHints {
-                    HotkeyHintsView(newTaskShortcut: settingsStore.displayString)
+                    HotkeyHintsView(newTaskShortcut: settingsStore.displayString, visible: !showEmptyState)
                         .padding(.bottom, 8)
                         .allowsHitTesting(false)
                 }
