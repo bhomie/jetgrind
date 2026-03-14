@@ -46,7 +46,7 @@ struct AddTodoView: View {
     private var inputContainer: some View {
         HStack(spacing: 0) {
             // TextField (visible when completed view closed)
-            TextField("Add a task...", text: $title)
+            TextField("", text: $title)
                 .textFieldStyle(.plain)
                 .font(.system(size: Theme.Font.body))
                 .focused(focus, equals: .input)
@@ -73,6 +73,12 @@ struct AddTodoView: View {
                     if !newValue.isEmpty {
                         title = newValue
                         injectedText = ""
+                    }
+                }
+                .overlay(alignment: .leading) {
+                    if title.isEmpty {
+                        WavePlaceholderView(isFocused: focus.wrappedValue == .input)
+                            .allowsHitTesting(false)
                     }
                 }
                 .opacity(showCompletedView ? 0 : 1)
