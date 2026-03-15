@@ -214,10 +214,10 @@ struct TodoListView: View {
     @ViewBuilder
     private func todoRow(item: TodoItem, previousTaskId: UUID?, nextTaskId: UUID?, rowIndex: Int = 0) -> some View {
         let itemBinding = Binding(
-            get: { store.items.indices.contains(rowIndex) ? store.items[rowIndex] : item },
+            get: { store.items.first(where: { $0.id == item.id }) ?? item },
             set: { newValue in
-                if store.items.indices.contains(rowIndex) {
-                    store.items[rowIndex] = newValue
+                if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
+                    store.items[idx] = newValue
                 }
             }
         )
