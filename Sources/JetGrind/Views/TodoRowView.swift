@@ -55,6 +55,10 @@ struct TodoRowView: View {
         colorScheme == .dark ? Theme.Opacity.pastelRowDark : Theme.Opacity.pastelRowLight
     }
 
+    private var actionButtonOpacity: Double {
+        colorScheme == .dark ? 0.15 : 0.3
+    }
+
     private var isActive: Bool {
         !item.isCompleted && (isHovered || focus.wrappedValue == .task(item.id) || isInActionMode)
     }
@@ -416,8 +420,8 @@ struct TodoRowView: View {
             .padding(.vertical, 5)
             .background {
                 Capsule()
-                    .fill(pastelColor.opacity(pastelOpacity * 2))
-                    .blendMode(.plusDarker)
+                    .fill(pastelColor.opacity(actionButtonOpacity))
+                    .blendMode(.plusLighter)
             }
         }
         .buttonStyle(.plain)
@@ -479,21 +483,13 @@ struct TodoRowView: View {
             .frame(width: isVisuallyFocused ? nil : Theme.Size.actionButtonSize, height: Theme.Size.actionButtonSize)
             .background {
                 Circle()
-                    .fill(pastelColor.opacity(isInActionMode ? pastelOpacity : 0))
-                    .blendMode(.plusDarker)
-                    .overlay {
-                        Circle()
-                            .fill(.black.opacity(isInActionMode ? 0.1 : 0))
-                    }
+                    .fill(pastelColor.opacity(isInActionMode ? actionButtonOpacity : 0))
+                    .blendMode(.plusLighter)
                     .opacity(isVisuallyFocused ? 0 : 1)
                     .animation(opacityAnimation, value: isVisuallyFocused)
                 Capsule()
-                    .fill(pastelColor.opacity(isInActionMode ? pastelOpacity : 0))
-                    .blendMode(.plusDarker)
-                    .overlay {
-                        Capsule()
-                            .fill(.black.opacity(isInActionMode ? 0.1 : 0))
-                    }
+                    .fill(pastelColor.opacity(isInActionMode ? actionButtonOpacity : 0))
+                    .blendMode(.plusLighter)
                     .opacity(isVisuallyFocused ? 1 : 0)
                     .animation(opacityAnimation, value: isVisuallyFocused)
             }
