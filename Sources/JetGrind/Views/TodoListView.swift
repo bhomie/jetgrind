@@ -265,12 +265,6 @@ struct TodoListView: View {
 
     private var emptyStateView: some View {
         ZStack {
-            LinearGradient(
-                colors: [Theme.Pastel.mint.opacity(0.08), Theme.Pastel.butter.opacity(0.06), Color.clear],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
             VStack(spacing: 12) {
                 Text("🌱")
                     .font(.system(size: Theme.Font.hero))
@@ -300,12 +294,6 @@ struct TodoListView: View {
 
     private var allDoneStateView: some View {
         ZStack {
-            LinearGradient(
-                colors: [Theme.Pastel.lavender.opacity(0.08), Theme.Pastel.rose.opacity(0.06), Color.clear],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
             VStack(spacing: 12) {
                 Text("🎉")
                     .font(.system(size: Theme.Font.hero))
