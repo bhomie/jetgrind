@@ -36,7 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "checkmark.circle", accessibilityDescription: "JetGrind")
+            button.image = NSImage(systemSymbolName: "checkmark.app.fill", accessibilityDescription: "JetGrind")
             button.imagePosition = .imageLeading
             button.action = #selector(statusItemClicked)
             button.target = self
